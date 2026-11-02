@@ -1,0 +1,36 @@
+{
+    "metadata": {
+        "ticker": "BBCA.JK",
+        "code": "BBCA",
+        "date": "2026-11-02",
+        "timestamp_update": "2026-11-02 15:57:46 WIB",
+        "status_data": "FINAL (EOD)",
+        "source_csv_file": "storage_data\\2_inference_ready\\BBCA_clean_indicators.csv"
+    },
+    "price_volume": {
+        "open": 5025.0,
+        "high": 5100.0,
+        "low": 4970.0,
+        "close": 4990.0,
+        "volume": 176228300
+    },
+    "fuzzy_inputs": {
+        "rsi_14": 36.6878,
+        "macd_hist": -19.7949,
+        "bb_pct_b": 0.2736,
+        "volume_ratio": 0.4994
+    },
+    "validation_filter": {
+        "sma_20": 5449.75,
+        "sma_50": 6002.4212,
+        "is_uptrend": false,
+        "local_min_n": 4800.0,
+        "near_local_min": false,
+        "signal_valid": false
+    },
+    "risk_management": {
+        "atr_14": 217.3107,
+        "initial_sl_estimate": 4664.03,
+        "initial_tp_estimate": 5641.93
+    }
+}

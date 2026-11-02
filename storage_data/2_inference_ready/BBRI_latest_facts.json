@@ -1,0 +1,36 @@
+{
+    "metadata": {
+        "ticker": "BBRI.JK",
+        "code": "BBRI",
+        "date": "2026-11-02",
+        "timestamp_update": "2026-11-02 15:57:47 WIB",
+        "status_data": "FINAL (EOD)",
+        "source_csv_file": "storage_data\\2_inference_ready\\BBRI_clean_indicators.csv"
+    },
+    "price_volume": {
+        "open": 2800.0,
+        "high": 2840.0,
+        "low": 2770.0,
+        "close": 2810.0,
+        "volume": 160596500
+    },
+    "fuzzy_inputs": {
+        "rsi_14": 39.9204,
+        "macd_hist": 0.9436,
+        "bb_pct_b": 0.3299,
+        "volume_ratio": 0.4343
+    },
+    "validation_filter": {
+        "sma_20": 2925.0,
+        "sma_50": 3123.2,
+        "is_uptrend": false,
+        "local_min_n": 2740.0,
+        "near_local_min": true,
+        "signal_valid": false
+    },
+    "risk_management": {
+        "atr_14": 117.8022,
+        "initial_sl_estimate": 2633.3,
+        "initial_tp_estimate": 3163.41
+    }
+}

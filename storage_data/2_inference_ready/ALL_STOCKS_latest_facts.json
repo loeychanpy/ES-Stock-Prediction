@@ -1,0 +1,110 @@
+{
+    "BBCA": {
+        "metadata": {
+            "ticker": "BBCA.JK",
+            "code": "BBCA",
+            "date": "2026-11-02",
+            "timestamp_update": "2026-11-02 15:57:46 WIB",
+            "status_data": "FINAL (EOD)",
+            "source_csv_file": "storage_data\\2_inference_ready\\BBCA_clean_indicators.csv"
+        },
+        "price_volume": {
+            "open": 5025.0,
+            "high": 5100.0,
+            "low": 4970.0,
+            "close": 4990.0,
+            "volume": 176228300
+        },
+        "fuzzy_inputs": {
+            "rsi_14": 36.6878,
+            "macd_hist": -19.7949,
+            "bb_pct_b": 0.2736,
+            "volume_ratio": 0.4994
+        },
+        "validation_filter": {
+            "sma_20": 5449.75,
+            "sma_50": 6002.4212,
+            "is_uptrend": false,
+            "local_min_n": 4800.0,
+            "near_local_min": false,
+            "signal_valid": false
+        },
+        "risk_management": {
+            "atr_14": 217.3107,
+            "initial_sl_estimate": 4664.03,
+            "initial_tp_estimate": 5641.93
+        }
+    },
+    "BBRI": {
+        "metadata": {
+            "ticker": "BBRI.JK",
+            "code": "BBRI",
+            "date": "2026-11-02",
+            "timestamp_update": "2026-11-02 15:57:47 WIB",
+            "status_data": "FINAL (EOD)",
+            "source_csv_file": "storage_data\\2_inference_ready\\BBRI_clean_indicators.csv"
+        },
+        "price_volume": {
+            "open": 2800.0,
+            "high": 2840.0,
+            "low": 2770.0,
+            "close": 2810.0,
+            "volume": 160596500
+        },
+        "fuzzy_inputs": {
+            "rsi_14": 39.9204,
+            "macd_hist": 0.9436,
+            "bb_pct_b": 0.3299,
+            "volume_ratio": 0.4343
+        },
+        "validation_filter": {
+            "sma_20": 2925.0,
+            "sma_50": 3123.2,
+            "is_uptrend": false,
+            "local_min_n": 2740.0,
+            "near_local_min": true,
+            "signal_valid": false
+        },
+        "risk_management": {
+            "atr_14": 117.8022,
+            "initial_sl_estimate": 2633.3,
+            "initial_tp_estimate": 3163.41
+        }
+    },
+    "TLKM": {
+        "metadata": {
+            "ticker": "TLKM.JK",
+            "code": "TLKM",
+            "date": "2026-11-02",
+            "timestamp_update": "2026-11-02 15:57:47 WIB",
+            "status_data": "FINAL (EOD)",
+            "source_csv_file": "storage_data\\2_inference_ready\\TLKM_clean_indicators.csv"
+        },
+        "price_volume": {
+            "open": 2000.0,
+            "high": 2000.0,
+            "low": 1935.0,
+            "close": 1960.0,
+            "volume": 172761800
+        },
+        "fuzzy_inputs": {
+            "rsi_14": 36.0817,
+            "macd_hist": -4.7652,
+            "bb_pct_b": 0.2077,
+            "volume_ratio": 0.5079
+        },
+        "validation_filter": {
+            "sma_20": 2142.0,
+            "sma_50": 2373.0,
+            "is_uptrend": false,
+            "local_min_n": 1935.0,
+            "near_local_min": true,
+            "signal_valid": false
+        },
+        "risk_management": {
+            "atr_14": 104.3886,
+            "initial_sl_estimate": 1803.42,
+            "initial_tp_estimate": 2273.17
+        }
+    }
+}
