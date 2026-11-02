@@ -1,0 +1,29 @@
+{
+  "rsi_14": {
+    "q10": 33.3981,
+    "q35": 43.40488,
+    "q65": 53.71053,
+    "q90": 64.66648
+  },
+  "macd_hist": {
+    "q10": -37.54879,
+    "q35": -9.3078,
+    "q65": 11.27379,
+    "q90": 31.45231
+  },
+  "bb_pct_b": {
+    "q10": 0.05963,
+    "q35": 0.267405,
+    "q65": 0.650515,
+    "q90": 0.89327
+  },
+  "volume_ratio": {
+    "q10": 0.53175,
+    "q35": 0.77983,
+    "q65": 1.11063,
+    "q90": 1.64436
+  },
+  "training_rows": 464,
+  "test_rows_excluded": 199,
+  "note": "Gunakan kuantil sebagai kandidat; cek firing rule dan validasi pada data test sebelum menetapkan."
+}
