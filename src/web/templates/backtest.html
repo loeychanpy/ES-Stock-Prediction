@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Backtest & Evaluasi Historis - {{ selected_ticker }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-4 py-3">
+
+  <!-- ========================================== -->
+  <!-- PARAMETER CONFIGURATION FORM -->
+  <!-- ========================================== -->
+  <div class="card-terminal p-3 mb-3">
+    <div class="card-header-terminal px-0 pt-0 mb-3">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-sliders text-info fs-5"></i>
+        <span>Konfigurasi Parameter Simulasi Event-Driven Backtest</span>
+      </div>
+      <span class="badge bg-dark border border-secondary text-muted">Bebas Look-Ahead Bias &bull; Fee Beli 0.15% / Jual 0.25%</span>
+    </div>
+
+    <form action="{{ url_for('backtesting') }}" method="POST">
+      <div class="row g-3 align-items-end">
+        <!-- Stock -->
+        <div class="col-lg-3 col-md-4">
+          <label class="form-label text-muted small text-uppercase fw-semibold">Pilih Saham:</label>
+          <select name="ticker" class="form-select form-select-terminal">
+            {% for s in stocks %}
+              <option value="{{ s }}" {% if s == selected_ticker %}selected{% endif %}>{{ s }} (IDX)</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- N-Days Low -->
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label text-muted small text-uppercase fw-semibold" title="Rentang hari minimum lokal sebelumnya">
+            N-Hari Min Low:
+          </label>
+          <div class="input-group input-group-sm">
+            <input type="number" name="n_days" class="form-control form-control-terminal font-mono-num" value="{{ params.n_days }}" min="2" max="60" required>
+            <span class="input-group-text bg-dark border-secondary text-muted">hari</span>
+          </div>
+        </div>
+
+        <!-- Near Local Min % -->
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label text-muted small text-uppercase fw-semibold" title="Toleransi kedekatan harga dengan titik terendah">
+            Toleransi Min:
+          </label>
+          <div class="input-group input-group-sm">
+            <input type="number" step="0.5" name="near_pct" class="form-control form-control-terminal font-mono-num" value="{{ params.near_pct }}" min="0.5" max="10.0" required>
+            <span class="input-group-text bg-dark border-secondary text-muted">%</span>
+          </div>
+        </div>
+
+        <!-- ATR TP Mult -->
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label text-muted small text-uppercase fw-semibold" title="Pengali ATR untuk Take Profit">
+            Take Profit (TP):
+          </label>
+          <div class="input-group input-group-sm">
+            <input type="number" step="0.5" name="tp_mult" class="form-control form-control-terminal font-mono-num" value="{{ params.tp_mult }}" min="1.0" max="6.0" required>
+            <span class="input-group-text bg-dark border-secondary text-muted">&times; ATR</span>
+          </div>
+        </div>
+
+        <!-- ATR SL Mult -->
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label text-muted small text-uppercase fw-semibold" title="Pengali ATR untuk Stop Loss">
+            Stop Loss (SL):
+          </label>
+          <div class="input-group input-group-sm">
+            <input type="number" step="0.25" name="sl_mult" class="form-control form-control-terminal font-mono-num" value="{{ params.sl_mult }}" min="0.5" max="4.0" required>
+            <span class="input-group-text bg-dark border-secondary text-muted">&times; ATR</span>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="col-lg-1 col-md-4 col-12 text-end">
+          <button type="submit" class="btn btn-terminal w-100 btn-sm">
+            <i class="bi bi-play-fill me-1"></i> Jalankan
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- KEY PERFORMANCE METRICS (KPIs) -->
+  <!-- ========================================== -->
+  <div class="row g-3 mb-3">
+    <!-- Total Return -->
+    <div class="col-xl-3 col-md-6">
+      <div class="metric-box">
+        <div class="metric-title">Total Return Strategi</div>
+        <div class="metric-value font-mono-num {% if summary and summary.total_return_pct >= 0 %}text-success{% else %}text-danger{% endif %}">
+          {{ summary.total_return_pct if summary else '0.0' }}%
+        </div>
+        <div class="small text-muted mt-1">
+          Buy & Hold: <span class="font-mono-num text-light">{{ summary.buy_and_hold_return_pct if summary else '0.0' }}%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Win Rate -->
+    <div class="col-xl-3 col-md-6">
+      <div class="metric-box">
+        <div class="metric-title">Win Rate Transaksi</div>
+        <div class="metric-value font-mono-num text-info">
+          {{ summary.win_rate_pct if summary else '0.0' }}%
+        </div>
+        <div class="small text-muted mt-1">
+          Menang: <span class="text-success fw-bold font-mono-num">{{ summary.wins if summary else 0 }}</span> &bull; 
+          Kalah: <span class="text-danger fw-bold font-mono-num">{{ summary.losses if summary else 0 }}</span> &bull; 
+          Total: <span class="font-mono-num">{{ summary.trades if summary else 0 }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Maximum Drawdown -->
+    <div class="col-xl-3 col-md-6">
+      <div class="metric-box">
+        <div class="metric-title">Maximum Drawdown (MDD)</div>
+        <div class="metric-value font-mono-num text-warning">
+          {{ summary.max_drawdown_pct if summary else '0.0' }}%
+        </div>
+        <div class="small text-muted mt-1">
+          Rata-rata Return / Trade: <span class="font-mono-num text-light">{{ summary.avg_trade_return_pct if summary else '0.0' }}%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Excess vs Benchmark -->
+    <div class="col-xl-3 col-md-6">
+      <div class="metric-box">
+        <div class="metric-title">Excess vs Buy & Hold (Alpha)</div>
+        <div class="metric-value font-mono-num {% if summary and summary.excess_vs_buy_hold_pct >= 0 %}text-success{% else %}text-danger{% endif %}">
+          {{ summary.excess_vs_buy_hold_pct if summary else '0.0' }}%
+        </div>
+        <div class="small text-muted mt-1">
+          Hari Sinyal Beli Fuzzy: <span class="font-mono-num text-light">{{ summary.fuzzy_buy_days if summary else 0 }}</span> dari {{ summary.valid_signal_days if summary else 0 }} hari valid
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- EQUITY CURVE CHART (PLOTLY) -->
+  <!-- ========================================== -->
+  <div class="card-terminal p-0 mb-3">
+    <div class="card-header-terminal px-3 py-2">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-graph-up text-success"></i>
+        <span>Grafik Kurva Pertumbuhan Modal (Equity Curve vs Benchmark Pasar)</span>
+      </div>
+      <div class="text-muted small">
+        <span class="badge bg-dark border border-secondary text-info">Simulasi Posisi Tunggal (Long Only)</span>
+      </div>
+    </div>
+    <div class="p-2">
+      {{ equity_chart_html | safe }}
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- HISTORICAL TRADES LOG -->
+  <!-- ========================================== -->
+  <div class="card-terminal p-0 mb-3">
+    <div class="card-header-terminal px-3 py-3">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-journal-text text-warning"></i>
+        <span>Riwayat Transaksi Perdagangan (Trade Log) &ndash; {{ selected_ticker }}</span>
+      </div>
+      <span class="badge bg-dark border border-secondary text-light">Total: {{ trades | length }} Transaksi</span>
+    </div>
+
+    {% if trades and trades | length > 0 %}
+      <div class="table-responsive" style="max-height: 480px;">
+        <table class="table table-terminal align-middle mb-0">
+          <thead class="sticky-top">
+            <tr>
+              <th class="text-center" style="width: 50px;">#</th>
+              <th>Tgl Masuk</th>
+              <th>Tgl Keluar</th>
+              <th class="text-end">Harga Masuk</th>
+              <th class="text-end">Harga Keluar</th>
+              <th class="text-end">Target TP</th>
+              <th class="text-end">Stop Loss</th>
+              <th>Alasan Keluar</th>
+              <th class="text-center">Skor Sinyal</th>
+              <th class="text-end">Net Return (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in trades %}
+              <tr>
+                <td class="text-center text-muted font-mono-num">{{ loop.index }}</td>
+                <td class="font-mono-num">{{ t.entry_date_str }}</td>
+                <td class="font-mono-num">{{ t.exit_date_str }}</td>
+                <td class="text-end font-mono-num text-white">Rp {{ "{:,.0f}".format(t.entry).replace(',', '.') }}</td>
+                <td class="text-end font-mono-num text-white">Rp {{ "{:,.0f}".format(t.exit_price).replace(',', '.') }}</td>
+                <td class="text-end font-mono-num text-success">Rp {{ "{:,.0f}".format(t.tp).replace(',', '.') }}</td>
+                <td class="text-end font-mono-num text-danger">Rp {{ "{:,.0f}".format(t.sl).replace(',', '.') }}</td>
+                <td>
+                  {% if t.exit_reason in ['TP', 'TP_GAP'] %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle font-mono-num">
+                      <i class="bi bi-bullseye me-1"></i>{{ t.exit_reason }}
+                    </span>
+                  {% elif t.exit_reason in ['SL', 'SL_GAP', 'SL_BOTH_TOUCHED'] %}
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle font-mono-num">
+                      <i class="bi bi-shield-x me-1"></i>{{ t.exit_reason }}
+                    </span>
+                  {% else %}
+                    <span class="badge bg-secondary font-mono-num">{{ t.exit_reason }}</span>
+                  {% endif %}
+                </td>
+                <td class="text-center font-mono-num text-info">{{ t.signal_strength }}</td>
+                <td class="text-end font-mono-num fw-bold {% if t.return_pct > 0 %}text-success{% else %}text-danger{% endif %}">
+                  {{ "{:+.2f}%".format(t.return_pct) }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+        Tidak ada transaksi yang terpicu untuk kombinasi parameter ini.<br>
+        <small>Coba sesuaikan parameter N-hari atau toleransi jarak minimum lokal.</small>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

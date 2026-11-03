@@ -1,0 +1,314 @@
+/* ========================================================
+   Trading Terminal Dark Mode Stylesheet
+   Sistem Pakar Saham BEI - Kelompok 8 (Krisantus)
+   ======================================================== */
+
+:root {
+  --bg-primary: #0b0f19;
+  --bg-secondary: #111827;
+  --bg-card: #161f30;
+  --bg-card-hover: #1b273d;
+  --border-color: #243048;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --accent-green: #22c55e;
+  --accent-green-bg: rgba(34, 197, 94, 0.12);
+  --accent-red: #ef4444;
+  --accent-red-bg: rgba(239, 68, 68, 0.12);
+  --accent-yellow: #f59e0b;
+  --accent-yellow-bg: rgba(245, 158, 11, 0.12);
+  --accent-cyan: #38bdf8;
+  --accent-cyan-bg: rgba(56, 189, 248, 0.12);
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Navbar */
+.navbar-terminal {
+  background-color: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.75rem 1.5rem;
+}
+
+.brand-badge {
+  background: linear-gradient(135deg, #38bdf8, #3b82f6);
+  color: #0b0f19;
+  font-weight: 800;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  margin-right: 0.5rem;
+}
+
+.nav-link {
+  color: var(--text-muted) !important;
+  font-weight: 500;
+  padding: 0.5rem 1rem !important;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: var(--text-main) !important;
+  background-color: rgba(56, 189, 248, 0.1);
+}
+
+.nav-link.active {
+  color: var(--accent-cyan) !important;
+  font-weight: 600;
+}
+
+/* Cards & Containers */
+.card-terminal {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+}
+
+.card-header-terminal {
+  background-color: rgba(17, 24, 39, 0.5);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.85rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Badges for Signal */
+.badge-signal-buy {
+  background-color: var(--accent-green-bg);
+  color: var(--accent-green);
+  border: 1px solid var(--accent-green);
+  font-weight: 700;
+  font-size: 1.1rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.badge-signal-hold {
+  background-color: var(--accent-yellow-bg);
+  color: var(--accent-yellow);
+  border: 1px solid var(--accent-yellow);
+  font-weight: 700;
+  font-size: 1.1rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.badge-pill-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+}
+
+/* Numeric Mono Display */
+.font-mono-num {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  letter-spacing: -0.02em;
+}
+
+/* Metric / Stat Boxes */
+.metric-box {
+  background-color: rgba(11, 15, 25, 0.6);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  transition: transform 0.15s ease;
+}
+
+.metric-box:hover {
+  border-color: #38bdf8;
+  transform: translateY(-2px);
+}
+
+.metric-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  margin-bottom: 0.35rem;
+}
+
+.metric-value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+/* Form Controls Dark */
+.form-select-terminal, .form-control-terminal {
+  background-color: #0b0f19;
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: 6px;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.9rem;
+}
+
+.form-select-terminal:focus, .form-control-terminal:focus {
+  background-color: #0e1422;
+  border-color: var(--accent-cyan);
+  color: var(--text-main);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+.btn-terminal {
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  color: white;
+  border: none;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-terminal:hover {
+  background: linear-gradient(135deg, #38bdf8, #3b82f6);
+  color: #0b0f19;
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.35);
+}
+
+/* Tables Dark */
+.table-terminal {
+  color: var(--text-main);
+  margin-bottom: 0;
+}
+
+.table-terminal thead th {
+  background-color: rgba(11, 15, 25, 0.8);
+  border-bottom: 2px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 1rem;
+}
+
+.table-terminal tbody td {
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  vertical-align: middle;
+}
+
+.table-terminal tbody tr:hover {
+  background-color: rgba(56, 189, 248, 0.04);
+}
+
+/* Rule Card Highlight */
+.rule-item {
+  background-color: rgba(11, 15, 25, 0.5);
+  border-left: 3px solid #64748b;
+  border-radius: 0 6px 6px 0;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.rule-item.active-strong {
+  border-left-color: var(--accent-green);
+  background-color: rgba(34, 197, 94, 0.05);
+}
+
+.rule-item.active-medium {
+  border-left-color: var(--accent-cyan);
+  background-color: rgba(56, 189, 248, 0.05);
+}
+
+.rule-item.active-weak {
+  border-left-color: var(--accent-red);
+  background-color: rgba(239, 68, 68, 0.05);
+}
+
+/* Progress bar dark */
+.progress-dark {
+  background-color: #1e293b;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+/* Footer */
+footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  padding: 1rem 0;
+  font-size: 0.825rem;
+  color: var(--text-muted);
+}
+
+/* ========================================================
+   High Contrast Modal & Form Controls
+   ======================================================== */
+.modal-content {
+  background-color: #161f30 !important;
+  color: #f1f5f9 !important;
+  border: 1px solid #2d3b55 !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7) !important;
+}
+
+.modal-header {
+  border-bottom: 1px solid #243048 !important;
+  background-color: #111827 !important;
+}
+
+.modal-footer {
+  border-top: 1px solid #243048 !important;
+  background-color: #111827 !important;
+}
+
+.modal-body {
+  color: #cbd5e1 !important;
+}
+
+.modal-body p {
+  color: #cbd5e1 !important;
+}
+
+.modal-body code {
+  color: #38bdf8 !important;
+  background-color: rgba(56, 189, 248, 0.15) !important;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+.form-control-terminal {
+  background-color: #0b0f19 !important;
+  color: #ffffff !important;
+  border: 1px solid #334155 !important;
+}
+
+.form-control-terminal::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+}
+
+.form-control-terminal:focus {
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25) !important;
+}

@@ -1,0 +1,402 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Analisis Saham - {{ selected_ticker }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-4 py-3">
+
+  <!-- ========================================== -->
+  <!-- TOP CONTROL & TICKER SELECTOR BAR -->
+  <!-- ========================================== -->
+  <div class="card-terminal p-3 mb-3">
+    <div class="row align-items-center gy-3">
+      <!-- Stock Selector Form -->
+      <div class="col-lg-5 col-md-6">
+        <form action="{{ url_for('dashboard') }}" method="GET" class="d-flex align-items-center gap-2">
+          <label class="text-muted small text-uppercase fw-semibold mb-0" style="min-width: 65px;">Saham:</label>
+          <select name="ticker" class="form-select form-select-terminal" onchange="this.form.submit()">
+            {% for s in stocks %}
+              <option value="{{ s }}" {% if s == selected_ticker %}selected{% endif %}>{{ s }} (IDX)</option>
+            {% endfor %}
+          </select>
+          <input type="hidden" name="period" value="{{ selected_period }}">
+          <button type="button" class="btn btn-outline-info btn-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalAddStock" title="Tarik Saham Baru dari BEI">
+            <i class="bi bi-plus-circle me-1"></i> Saham Baru
+          </button>
+        </form>
+      </div>
+
+      <!-- Timeframe Period Selector Pills -->
+      <div class="col-lg-4 col-md-6 text-md-center">
+        <div class="btn-group btn-group-sm" role="group">
+          {% for p in ['3M', '6M', '1Y', '3Y', 'ALL'] %}
+            <a href="{{ url_for('dashboard', ticker=selected_ticker, period=p) }}" 
+               class="btn {% if selected_period == p %}btn-info text-dark fw-bold{% else %}btn-outline-secondary text-light{% endif %}">
+              {{ p }}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Quick Price Info -->
+      <div class="col-lg-3 col-12 text-lg-end text-start">
+        {% if df_info %}
+          <div class="d-inline-block text-lg-end">
+            <div class="d-flex align-items-baseline justify-content-lg-end gap-2">
+              <span class="fs-4 fw-bold font-mono-num text-white">Rp {{ df_info.latest_close }}</span>
+              <span class="badge {% if df_info.is_positive %}bg-success text-white{% else %}bg-danger text-white{% endif %} font-mono-num">
+                {{ df_info.change }} ({{ df_info.change_pct }})
+              </span>
+            </div>
+            <div class="text-muted small">Update: {{ df_info.latest_date }} &bull; {{ df_info.total_bars }} bars</div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MAIN SIGNAL & RECOMMENDATION HERO -->
+  <!-- ========================================== -->
+  <div class="row gy-3 mb-3">
+    <!-- Kolom 1: Rekomendasi Utama (BELI / TAHAN) -->
+    <div class="col-xl-4 col-lg-5">
+      <div class="card-terminal h-100 p-3 d-flex flex-column justify-content-between">
+        <div>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="text-uppercase text-muted small fw-bold tracking-wide">Rekomendasi Sistem Pakar</span>
+            <span class="badge bg-dark border border-secondary text-info small">Forward Chaining</span>
+          </div>
+
+          <!-- Status Badge -->
+          <div class="text-center py-2 mb-3">
+            {% if inference and inference.decision == 'BELI' %}
+              <div class="badge-signal-buy">
+                <i class="bi bi-check-circle-fill fs-4"></i>
+                <span>REKOMENDASI: BELI</span>
+              </div>
+            {% else %}
+              <div class="badge-signal-hold">
+                <i class="bi bi-hourglass-split fs-4"></i>
+                <span>REKOMENDASI: TAHAN</span>
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Signal Strength Score Meter -->
+          <div class="mb-3">
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted">Kekuatan Sinyal Defuzzifikasi Centroid:</span>
+              <span class="fw-bold font-mono-num {% if inference and inference.signal_strength >= 70 %}text-success{% else %}text-warning{% endif %}">
+                {{ inference.signal_strength if inference else 0 }}/100
+              </span>
+            </div>
+            <div class="progress progress-dark">
+              <div class="progress-bar {% if inference and inference.signal_strength >= 70 %}bg-success{% else %}bg-warning{% endif %}" 
+                   role="progressbar" 
+                   style="width: {{ inference.signal_strength if inference else 0 }}%;"></div>
+            </div>
+            <div class="d-flex justify-content-between text-muted" style="font-size: 0.65rem;">
+              <span>0 (Lemah)</span>
+              <span>Ambang Beli: &ge;70</span>
+              <span>100 (Kuat)</span>
+            </div>
+          </div>
+
+          <!-- Filter Validasi Tahap 3 -->
+          <div class="p-2 rounded bg-dark border border-secondary mb-3 small">
+            <div class="fw-semibold text-muted mb-1 text-uppercase" style="font-size: 0.7rem;">Filter Validasi Sinyal (Tahap 3):</div>
+            <div class="row g-2">
+              <div class="col-6">
+                <span class="text-muted">Tren Naik (SMA20>50):</span>
+                {% if facts and facts.validation_filter.is_uptrend %}
+                  <span class="badge bg-success-subtle text-success ms-1"><i class="bi bi-check-lg"></i> Valid</span>
+                {% else %}
+                  <span class="badge bg-danger-subtle text-danger ms-1"><i class="bi bi-x-lg"></i> Gagal</span>
+                {% endif %}
+              </div>
+              <div class="col-6">
+                <span class="text-muted">Min Lokal (&le;3%):</span>
+                {% if facts and facts.validation_filter.near_local_min %}
+                  <span class="badge bg-success-subtle text-success ms-1"><i class="bi bi-check-lg"></i> Valid</span>
+                {% else %}
+                  <span class="badge bg-danger-subtle text-danger ms-1"><i class="bi bi-x-lg"></i> Gagal</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Target Harga Entry / TP / SL -->
+        <div class="border-top border-secondary pt-3">
+          <div class="row text-center g-2">
+            <div class="col-4">
+              <div class="metric-box py-2">
+                <div class="metric-title" style="font-size: 0.65rem;">Entry Price</div>
+                <div class="font-mono-num fw-bold fs-6 text-white">
+                  {{ inference.entry_price if inference and inference.entry_price else '-' }}
+                </div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="metric-box py-2" style="border-color: rgba(34, 197, 94, 0.4);">
+                <div class="metric-title text-success" style="font-size: 0.65rem;">Target TP (+3 ATR)</div>
+                <div class="font-mono-num fw-bold fs-6 text-success">
+                  {{ inference.tp if inference and inference.tp else '-' }}
+                </div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="metric-box py-2" style="border-color: rgba(239, 68, 68, 0.4);">
+                <div class="metric-title text-danger" style="font-size: 0.65rem;">Stop Loss (-1.5 ATR)</div>
+                <div class="font-mono-num fw-bold fs-6 text-danger">
+                  {{ inference.sl if inference and inference.sl else '-' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kolom 2: Fakta Indikator & Nilai Fuzzy -->
+    <div class="col-xl-8 col-lg-7">
+      <div class="card-terminal h-100 p-3">
+        <div class="card-header-terminal mb-3 px-0 pt-0">
+          <span><i class="bi bi-cpu me-2 text-info"></i>Fakta Nilai Indikator & Derajat Fuzzifikasi</span>
+          <span class="badge bg-dark border border-secondary text-muted">Input Fuzzy</span>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <!-- RSI 14 -->
+          <div class="col-md-3 col-6">
+            <div class="metric-box">
+              <div class="metric-title">RSI (14)</div>
+              <div class="metric-value font-mono-num text-warning">
+                {{ facts.fuzzy_inputs.rsi_14 if facts else '-' }}
+              </div>
+              <div class="small text-muted mt-1" style="font-size: 0.72rem;">
+                {% if inference and inference.fuzzified_inputs.rsi %}
+                  R: {{ inference.fuzzified_inputs.rsi.rendah }} &bull; S: {{ inference.fuzzified_inputs.rsi.sedang }} &bull; T: {{ inference.fuzzified_inputs.rsi.tinggi }}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- MACD Hist -->
+          <div class="col-md-3 col-6">
+            <div class="metric-box">
+              <div class="metric-title">MACD Histogram</div>
+              <div class="metric-value font-mono-num {% if facts and facts.fuzzy_inputs.macd_hist >= 0 %}text-success{% else %}text-danger{% endif %}">
+                {{ facts.fuzzy_inputs.macd_hist if facts else '-' }}
+              </div>
+              <div class="small text-muted mt-1" style="font-size: 0.72rem;">
+                {% if inference and inference.fuzzified_inputs.macd %}
+                  Neg: {{ inference.fuzzified_inputs.macd.negatif }} &bull; Pos: {{ inference.fuzzified_inputs.macd.positif }}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Bollinger %B -->
+          <div class="col-md-3 col-6">
+            <div class="metric-box">
+              <div class="metric-title">Bollinger %B</div>
+              <div class="metric-value font-mono-num text-info">
+                {{ facts.fuzzy_inputs.bb_pct_b if facts else '-' }}
+              </div>
+              <div class="small text-muted mt-1" style="font-size: 0.72rem;">
+                {% if inference and inference.fuzzified_inputs.bb %}
+                  R: {{ inference.fuzzified_inputs.bb.rendah }} &bull; S: {{ inference.fuzzified_inputs.bb.sedang }} &bull; T: {{ inference.fuzzified_inputs.bb.tinggi }}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Volume Ratio -->
+          <div class="col-md-3 col-6">
+            <div class="metric-box">
+              <div class="metric-title">Volume Ratio</div>
+              <div class="metric-value font-mono-num text-light">
+                {{ facts.fuzzy_inputs.volume_ratio if facts else '-' }}x
+              </div>
+              <div class="small text-muted mt-1" style="font-size: 0.72rem;">
+                {% if inference and inference.fuzzified_inputs.volume %}
+                  R: {{ inference.fuzzified_inputs.volume.rendah }} &bull; N: {{ inference.fuzzified_inputs.volume.normal }} &bull; T: {{ inference.fuzzified_inputs.volume.tinggi }}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Explanation Narration -->
+        <div class="p-3 rounded bg-dark border border-secondary">
+          <div class="d-flex align-items-center mb-1">
+            <i class="bi bi-chat-left-text-fill text-info me-2"></i>
+            <span class="fw-semibold text-light small text-uppercase">Narasi Penjelasan Sistem:</span>
+          </div>
+          <p class="mb-0 text-muted small lh-base">
+            {{ inference.explanation if inference else 'Tidak ada data inferensi.' }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- INTERACTIVE PLOTLY CHART -->
+  <!-- ========================================== -->
+  <div class="card-terminal p-0 mb-3">
+    <div class="card-header-terminal px-3 py-2">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-bar-chart-line-fill text-info"></i>
+        <span>Grafik Interaktif Candlestick & Indikator Teknikal (Plotly)</span>
+      </div>
+      <div class="text-muted small">
+        <span class="badge bg-dark border border-secondary text-light">Rentang: {{ selected_period }}</span>
+      </div>
+    </div>
+    <div class="p-2">
+      {{ chart_html | safe }}
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- RULE EXPLANATION PANEL (R1 - R4) -->
+  <!-- ========================================== -->
+  <div class="card-terminal p-3">
+    <div class="card-header-terminal px-0 pt-0 mb-3">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-shield-check text-success"></i>
+        <span>Panel Evaluasi Basis Aturan (Knowledge Base R1 &ndash; R4)</span>
+      </div>
+      <span class="text-muted small">Metode Inferensi: Mamdani (MIN-MAX-Centroid)</span>
+    </div>
+
+    <div class="row g-3">
+      {% if inference and inference.all_rules %}
+        {% for r in inference.all_rules %}
+          <div class="col-md-6">
+            <div class="rule-item {% if r.consequent == 'kuat' and r.firing_strength > 0.1 %}active-strong{% elif r.consequent == 'sedang' and r.firing_strength > 0.1 %}active-medium{% elif r.consequent == 'lemah' and r.firing_strength > 0.1 %}active-weak{% endif %}">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-bold font-mono-num text-info">{{ r.id }}</span>
+                <span class="badge {% if r.consequent == 'kuat' %}bg-success{% elif r.consequent == 'sedang' %}bg-info text-dark{% else %}bg-secondary{% endif %} text-uppercase" style="font-size: 0.65rem;">
+                  Konsekuen: {{ r.consequent }}
+                </span>
+              </div>
+              <div class="small text-light font-mono-num mb-2" style="font-size: 0.8rem;">
+                {{ r.description }}
+              </div>
+              <div class="d-flex justify-content-between align-items-center small text-muted">
+                <span>Firing Strength (&alpha;):</span>
+                <span class="font-mono-num fw-bold {% if r.firing_strength >= 0.5 %}text-success{% elif r.firing_strength > 0 %}text-info{% else %}text-secondary{% endif %}">
+                  {{ r.firing_strength }}
+                </span>
+              </div>
+              <div class="progress progress-dark mt-1" style="height: 5px;">
+                <div class="progress-bar {% if r.consequent == 'kuat' %}bg-success{% elif r.consequent == 'sedang' %}bg-info{% else %}bg-danger{% endif %}" 
+                     role="progressbar" 
+                     style="width: {{ r.firing_strength * 100 }}%;"></div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="col-12 text-center text-muted py-3">
+          Aturan fuzzy tidak dievaluasi karena sinyal pada tahap 3 belum memenuhi syarat (tidak dalam uptrend atau tidak dekat minimum lokal).
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL: TAMBAH SAHAM BARU (FETCH BEI) -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalAddStock" tabindex="-1" aria-labelledby="modalAddStockLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content card-terminal">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title text-light" id="modalAddStockLabel">
+          <i class="bi bi-cloud-arrow-down-fill text-info me-2"></i>Tarik Saham Baru dari BEI
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="formFetchStock">
+        <div class="modal-body">
+          <p class="text-light-emphasis small lh-base mb-3" style="color: #cbd5e1 !important;">
+            Masukkan 4 huruf kode saham BEI (misal: 
+            <span class="badge bg-dark border border-info text-info font-mono-num">ASII</span>
+            <span class="badge bg-dark border border-info text-info font-mono-num">BBNI</span>
+            <span class="badge bg-dark border border-info text-info font-mono-num">BMRI</span>
+            <span class="badge bg-dark border border-info text-info font-mono-num">ICBP</span>).
+            Sistem akan otomatis menambahkan akhiran <code>.JK</code>, mengunduh data 3 tahun terakhir dari Yahoo Finance, dan menghitung seluruh indikator teknikal.
+          </p>
+          <div class="mb-3">
+            <label class="form-label text-light small text-uppercase fw-bold mb-1" style="color: #f1f5f9 !important;">
+              Kode Saham (Ticker)
+            </label>
+            <input type="text" id="inputTicker" class="form-control form-control-terminal text-uppercase font-mono-num fs-5" placeholder="CONTOH: ASII" required maxlength="10">
+          </div>
+          <div id="fetchAlert" class="alert d-none small" role="alert"></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" id="btnSubmitFetch" class="btn btn-terminal btn-sm">
+            <span id="fetchSpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status"></span>
+            Tarik & Proses Data
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.getElementById('formFetchStock').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const ticker = document.getElementById('inputTicker').value.trim().toUpperCase();
+    const btn = document.getElementById('btnSubmitFetch');
+    const spinner = document.getElementById('fetchSpinner');
+    const alertBox = document.getElementById('fetchAlert');
+
+    if (!ticker) return;
+
+    btn.disabled = true;
+    spinner.classList.remove('d-none');
+    alertBox.className = 'alert alert-info small';
+    alertBox.textContent = `Sedang mengunduh dan memproses indikator ${ticker}... Mohon tunggu sebentar.`;
+    alertBox.classList.remove('d-none');
+
+    try {
+      const response = await fetch('/api/fetch_stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticker: ticker })
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        alertBox.className = 'alert alert-success small';
+        alertBox.textContent = `Berhasil! Mengalihkan ke dashboard ${data.ticker}...`;
+        setTimeout(() => {
+          window.location.href = `/dashboard?ticker=${data.ticker}`;
+        }, 1000);
+      } else {
+        alertBox.className = 'alert alert-danger small';
+        alertBox.textContent = `Gagal: ${data.error || 'Terjadi kesalahan'}`;
+        btn.disabled = false;
+        spinner.classList.add('d-none');
+      }
+    } catch (err) {
+      alertBox.className = 'alert alert-danger small';
+      alertBox.textContent = `Error jaringan/server: ${err.message}`;
+      btn.disabled = false;
+      spinner.classList.add('d-none');
+    }
+  });
+</script>
+{% endblock %}

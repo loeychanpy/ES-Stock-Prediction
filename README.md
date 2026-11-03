@@ -9,8 +9,8 @@ Sistem pakar rekomendasi saham BEI/IDX menggunakan **Fuzzy Logic (Mamdani)** +
 |---|---|---|
 | Christian | Data & Indicators Engineer | `src/data_indicators_engineer.py` |
 | Janisha | Fuzzy Inference Engine | `src/fuzzy_engine/` |
-| Felix | Signal Validation & Backtesting | TBD |
-| Krisantus | Web App & Visualization | TBD |
+| Felix | Signal Validation & Backtesting | `src/signal_validation_backtest.py` |
+| Krisantus | Web App & Visualization | `src/web/` & `run_web.py` |
 
 ## Alur Data
 
@@ -47,6 +47,10 @@ python src/data_indicators_engineer.py
 python src/run_inference.py BBCA
 python src/run_inference.py BBCA BBRI TLKM
 python src/run_inference.py --all
+
+# 3. Jalankan Web App & Visualisasi (Krisantus)
+python run_web.py
+# Buka browser di http://127.0.0.1:5000
 ```
 
 ## Kontrak output modul Fuzzy Inference 
