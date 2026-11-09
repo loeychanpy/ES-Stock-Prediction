@@ -164,7 +164,7 @@
       <div class="card-terminal h-100 p-3">
         <div class="card-header-terminal mb-3 px-0 pt-0">
           <span><i class="bi bi-cpu me-2 text-info"></i>Fakta Nilai Indikator & Derajat Fuzzifikasi</span>
-          <span class="badge bg-dark border border-secondary text-muted">Input Fuzzy</span>
+          <span class="badge bg-dark border border-secondary text-muted">Input Fuzzy & Risiko</span>
         </div>
 
         <div class="row g-3 mb-3">
@@ -224,6 +224,48 @@
                 {% if inference and inference.fuzzified_inputs.volume %}
                   R: {{ inference.fuzzified_inputs.volume.rendah }} &bull; N: {{ inference.fuzzified_inputs.volume.normal }} &bull; T: {{ inference.fuzzified_inputs.volume.tinggi }}
                 {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Baris 2: ATR 14, SMA 20/50 & Minimum Lokal NPMM -->
+        <div class="row g-3 mb-3">
+          <!-- ATR 14 -->
+          <div class="col-md-4 col-6">
+            <div class="metric-box py-2">
+              <div class="metric-title">ATR (14) &mdash; Volatilitas</div>
+              <div class="font-mono-num fw-bold fs-5" style="color: #f43f5e;">
+                Rp {{ "{:,.2f}".format(facts.risk_management.atr_14) if facts and facts.risk_management else '-' }}
+              </div>
+              <div class="small text-muted mt-1" style="font-size: 0.70rem;">
+                Acuan TP (+3&times;ATR) &amp; SL (-1.5&times;ATR)
+              </div>
+            </div>
+          </div>
+
+          <!-- SMA 20 & SMA 50 -->
+          <div class="col-md-4 col-6">
+            <div class="metric-box py-2">
+              <div class="metric-title">Moving Average (Tren)</div>
+              <div class="font-mono-num fw-bold fs-6 text-light">
+                SMA20: {{ "{:,.0f}".format(facts.validation_filter.sma_20).replace(',', '.') if facts and facts.validation_filter else '-' }}
+              </div>
+              <div class="small text-muted font-mono-num mt-1" style="font-size: 0.72rem;">
+                SMA50: {{ "{:,.0f}".format(facts.validation_filter.sma_50).replace(',', '.') if facts and facts.validation_filter else '-' }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Local Min N (NPMM) -->
+          <div class="col-md-4 col-12">
+            <div class="metric-box py-2">
+              <div class="metric-title">Minimum Lokal (NPMM)</div>
+              <div class="font-mono-num fw-bold fs-6 text-info">
+                Rp {{ "{:,.0f}".format(facts.validation_filter.local_min_n).replace(',', '.') if facts and facts.validation_filter else '-' }}
+              </div>
+              <div class="small text-muted mt-1" style="font-size: 0.70rem;">
+                Toleransi Maks (+3%): Rp {{ "{:,.0f}".format(facts.validation_filter.local_min_n * 1.03).replace(',', '.') if facts and facts.validation_filter else '-' }}
               </div>
             </div>
           </div>

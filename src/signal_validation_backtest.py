@@ -28,8 +28,8 @@ BUY_FEE = 0.0015
 SELL_FEE = 0.0025
 
 
-def validate_signals(df: pd.DataFrame, n_days: int = 20,
-                     near_pct: float = 0.02) -> pd.DataFrame:
+def validate_signals(df: pd.DataFrame, n_days: int = 5,
+                     near_pct: float = 0.03) -> pd.DataFrame:
     """Build NPMM-inspired local-low + SMA trend filter without look-ahead.
 
     The reference is the minimum Low of the PREVIOUS N completed sessions
@@ -53,6 +53,33 @@ def validate_signals(df: pd.DataFrame, n_days: int = 20,
     return out
 
 
+def evaluate_npmm_proximity(detail: pd.DataFrame, n_days: int = 5,
+                            tol_pct: float = 0.03) -> dict:
+    """Evaluasi historis kedekatan sinyal BELI dengan titik minimum lokal NPMM.
+
+    Mengacu bagian ANALISA laporan: label NPMM historis (jendela simetris N hari)
+    digunakan hanya pada evaluasi historis (terpisah dari metrik keuangan) untuk
+    mengukur seberapa dekat sinyal BELI dengan titik minimum harga sebenarnya.
+    """
+    window = 2 * n_days + 1
+    npmm_min_price = detail["Low"].rolling(window=window, center=True, min_periods=n_days).min()
+    dist_pct = ((detail["Close"] - npmm_min_price) / npmm_min_price).clip(lower=0.0)
+    buy_rows = detail[detail["Buy_Signal"]]
+    if buy_rows.empty:
+        return {
+            "buy_signals_evaluated": 0,
+            "avg_distance_to_npmm_min_pct": 0.0,
+            "near_npmm_min_hit_rate_pct": 0.0,
+        }
+    buy_dist = dist_pct.loc[buy_rows.index].dropna()
+    hits = (buy_dist <= tol_pct).sum()
+    return {
+        "buy_signals_evaluated": int(len(buy_dist)),
+        "avg_distance_to_npmm_min_pct": round(float(buy_dist.mean() * 100), 2) if len(buy_dist) else 0.0,
+        "near_npmm_min_hit_rate_pct": round(float(hits / len(buy_dist) * 100), 2) if len(buy_dist) else 0.0,
+    }
+
+
 def _facts(row: pd.Series, atr_tp_mult: float, atr_sl_mult: float) -> dict:
     close, atr = float(row.Close), float(row.ATR_14)
     return {
@@ -68,6 +95,49 @@ def _facts(row: pd.Series, atr_tp_mult: float, atr_sl_mult: float) -> dict:
         "price_volume": {"close": close, "open": float(row.Open),
                          "high": float(row.High), "low": float(row.Low),
                          "volume": int(row.Volume)},
+    }
+
+
+def _build_signal_snapshot(sig_row: pd.Series, inf_result: dict) -> dict:
+    """Susun rekaman lengkap seluruh indikator, filter, dan aturan fuzzy pada saat sinyal muncul."""
+    prior_low = float(sig_row.Prior_N_Day_Low) if pd.notna(sig_row.Prior_N_Day_Low) else float(sig_row.Low)
+    close_val = float(sig_row.Close)
+    dist_low_pct = ((close_val - prior_low) / prior_low * 100.0) if prior_low > 0 else 0.0
+
+    return {
+        "ohlcv": {
+            "open": round(float(sig_row.Open), 2),
+            "high": round(float(sig_row.High), 2),
+            "low": round(float(sig_row.Low), 2),
+            "close": round(close_val, 2),
+            "volume": int(sig_row.Volume),
+        },
+        "indicators": {
+            "rsi_14": round(float(sig_row.RSI_14), 2),
+            "macd_line": round(float(sig_row.MACD_Line), 2) if "MACD_Line" in sig_row else 0.0,
+            "macd_signal": round(float(sig_row.MACD_Signal), 2) if "MACD_Signal" in sig_row else 0.0,
+            "macd_hist": round(float(sig_row.MACD_Hist), 2),
+            "bb_upper": round(float(sig_row.BB_Upper), 2) if "BB_Upper" in sig_row else 0.0,
+            "bb_middle": round(float(sig_row.BB_Middle), 2) if "BB_Middle" in sig_row else 0.0,
+            "bb_lower": round(float(sig_row.BB_Lower), 2) if "BB_Lower" in sig_row else 0.0,
+            "bb_pct_b": round(float(sig_row.BB_PctB), 4),
+            "volume_sma_20": int(sig_row.Volume_SMA_20) if "Volume_SMA_20" in sig_row and pd.notna(sig_row.Volume_SMA_20) else 0,
+            "volume_ratio": round(float(sig_row.Volume_Ratio), 2),
+            "sma_20": round(float(sig_row.SMA_20), 2),
+            "sma_50": round(float(sig_row.SMA_50), 2),
+            "atr_14": round(float(sig_row.ATR_14), 2),
+            "prior_n_day_low": round(prior_low, 2),
+            "dist_to_low_pct": round(dist_low_pct, 2),
+        },
+        "validation": {
+            "trend_valid": bool(sig_row.Trend_Valid),
+            "local_min_valid": bool(sig_row.Local_Min_Valid),
+            "signal_valid": bool(sig_row.Signal_Valid_Recalc),
+        },
+        "fuzzified_inputs": inf_result.get("fuzzified_inputs", {}),
+        "all_rules": inf_result.get("all_rules", []),
+        "triggered_rules": inf_result.get("triggered_rules", []),
+        "explanation": inf_result.get("explanation", ""),
     }
 
 
@@ -90,7 +160,7 @@ def _metrics(returns: list[float], equity_values: list[float], trades: list[dict
     }
 
 
-def backtest(df: pd.DataFrame, n_days: int = 20, near_pct: float = 0.02,
+def backtest(df: pd.DataFrame, n_days: int = 5, near_pct: float = 0.03,
              atr_tp_mult: float = 3.0, atr_sl_mult: float = 1.5,
              buy_fee: float = BUY_FEE, sell_fee: float = SELL_FEE,
              start_date: str | None = None, end_date: str | None = None) -> dict:
@@ -157,13 +227,19 @@ def backtest(df: pd.DataFrame, n_days: int = 20, near_pct: float = 0.02,
             prev_dt = idx[i - 1]
             prev_result = decisions.get(prev_dt)
             if prev_result and prev_result["decision"] == "BELI" and prev_result["signal_valid"]:
+                prev_row = data.loc[prev_dt]
                 entry = float(row.Open)
-                atr = float(data.loc[prev_dt, "ATR_14"])
+                atr = float(prev_row["ATR_14"])
                 if np.isfinite(entry) and entry > 0 and np.isfinite(atr) and atr > 0:
-                    position = {"signal_date": prev_dt, "entry_date": dt,
-                                "entry": entry, "tp": entry + atr_tp_mult * atr,
-                                "sl": entry - atr_sl_mult * atr,
-                                "signal_strength": prev_result["signal_strength"]}
+                    position = {
+                        "signal_date": prev_dt,
+                        "entry_date": dt,
+                        "entry": entry,
+                        "tp": entry + atr_tp_mult * atr,
+                        "sl": entry - atr_sl_mult * atr,
+                        "signal_strength": prev_result["signal_strength"],
+                        "snapshot": _build_signal_snapshot(prev_row, prev_result),
+                    }
         # Mark-to-market equity for drawdown; approximate daily exposure return.
         if position is None:
             daily_equity.append(equity)
@@ -180,8 +256,13 @@ def backtest(df: pd.DataFrame, n_days: int = 20, near_pct: float = 0.02,
     detail["Signal_Strength"] = [decisions.get(d, {}).get("signal_strength", np.nan) for d in detail.index]
     detail["Fuzzy_Signal_Valid"] = [decisions.get(d, {}).get("signal_valid", False) for d in detail.index]
     detail["Buy_Signal"] = detail["Fuzzy_Decision"].eq("BELI") & detail["Signal_Valid_Recalc"]
+    detail["Equity_Curve"] = np.round(daily_equity, 6)
+    detail["Buy_Hold_Equity"] = np.round((detail["Close"] / first_open) * (1 - buy_fee), 6)
+
+    npmm_eval = evaluate_npmm_proximity(detail, n_days=n_days, tol_pct=near_pct)
     summary.update({"n_days": len(data), "valid_signal_days": int(data.Signal_Valid_Recalc.sum()),
                     "fuzzy_buy_days": int(detail.Buy_Signal.sum()),
+                    "npmm_evaluation": npmm_eval,
                     "parameters": {"n_days": n_days, "near_pct": near_pct,
                                    "atr_tp_mult": atr_tp_mult, "atr_sl_mult": atr_sl_mult,
                                    "buy_fee_pct": buy_fee * 100, "sell_fee_pct": sell_fee * 100},
@@ -211,7 +292,7 @@ def calibrate_membership(df: pd.DataFrame, train_ratio: float = 0.7) -> dict:
     return result
 
 
-def calibrate_atr(df: pd.DataFrame, n_days: int = 20, near_pct: float = 0.02,
+def calibrate_atr(df: pd.DataFrame, n_days: int = 5, near_pct: float = 0.03,
                   tp_grid=(2.0, 2.5, 3.0, 3.5, 4.0),
                   sl_grid=(1.0, 1.25, 1.5, 1.75, 2.0), train_ratio: float = 0.7) -> pd.DataFrame:
     """Grid-search ATR multipliers on chronological TRAINING data only."""
@@ -230,7 +311,7 @@ def calibrate_atr(df: pd.DataFrame, n_days: int = 20, near_pct: float = 0.02,
     out = pd.DataFrame(rows)
     if not out.empty:
         # Simple transparent objective; penalizes drawdown and discourages tiny samples.
-        out["objective"] = out.return_pct + out.max_drawdown_pct
+        out["objective"] = (out.return_pct + out.max_drawdown_pct).round(2)
         out = out.sort_values(["objective", "trades"], ascending=[False, False]).reset_index(drop=True)
     return out
 
@@ -252,7 +333,8 @@ def run_one(code: str, save_details: bool = False) -> dict:
     print(atr_cal.head(10).to_string(index=False) if not atr_cal.empty else "Tidak ada kombinasi yang dapat diuji")
     if save_details:
         os.makedirs(OUT_DIR, exist_ok=True)
-        result["trades_detail"].to_csv(os.path.join(OUT_DIR, f"{code.upper()}_trades.csv"), index=False)
+        trades_csv_df = result["trades_detail"].drop(columns=["snapshot"], errors="ignore")
+        trades_csv_df.to_csv(os.path.join(OUT_DIR, f"{code.upper()}_trades.csv"), index=False)
         result["daily_detail"].to_csv(os.path.join(OUT_DIR, f"{code.upper()}_daily.csv"))
         atr_cal.to_csv(os.path.join(OUT_DIR, f"{code.upper()}_atr_calibration.csv"), index=False)
         with open(os.path.join(OUT_DIR, f"{code.upper()}_membership_calibration.json"), "w") as f:

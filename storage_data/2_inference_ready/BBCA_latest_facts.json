@@ -2,35 +2,35 @@
     "metadata": {
         "ticker": "BBCA.JK",
         "code": "BBCA",
-        "date": "2026-11-02",
-        "timestamp_update": "2026-11-02 15:57:46 WIB",
-        "status_data": "FINAL (EOD)",
+        "date": "2026-11-09",
+        "timestamp_update": "2026-11-09 14:30:39 WIB",
+        "status_data": "SEMENTARA (Intraday Delayed ~15m)",
         "source_csv_file": "storage_data\\2_inference_ready\\BBCA_clean_indicators.csv"
     },
     "price_volume": {
-        "open": 5025.0,
-        "high": 5100.0,
-        "low": 4970.0,
-        "close": 4990.0,
-        "volume": 176228300
+        "open": 5300.0,
+        "high": 5350.0,
+        "low": 5250.0,
+        "close": 5325.0,
+        "volume": 182851300
     },
     "fuzzy_inputs": {
-        "rsi_14": 36.6878,
-        "macd_hist": -19.7949,
-        "bb_pct_b": 0.2736,
-        "volume_ratio": 0.4994
+        "rsi_14": 48.4401,
+        "macd_hist": 56.2992,
+        "bb_pct_b": 0.5717,
+        "volume_ratio": 0.487
     },
     "validation_filter": {
-        "sma_20": 5449.75,
-        "sma_50": 6002.4212,
+        "sma_20": 5212.75,
+        "sma_50": 5870.6,
         "is_uptrend": false,
-        "local_min_n": 4800.0,
+        "local_min_n": 4820.0,
         "near_local_min": false,
         "signal_valid": false
     },
     "risk_management": {
-        "atr_14": 217.3107,
-        "initial_sl_estimate": 4664.03,
-        "initial_tp_estimate": 5641.93
+        "atr_14": 207.4682,
+        "initial_sl_estimate": 5013.8,
+        "initial_tp_estimate": 5947.4
     }
 }

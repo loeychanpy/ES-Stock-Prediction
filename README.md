@@ -7,7 +7,7 @@ Sistem pakar rekomendasi saham BEI/IDX menggunakan **Fuzzy Logic (Mamdani)** +
 
 | Anggota | Modul | Folder |
 |---|---|---|
-| Christian | Data & Indicators Engineer | `src/data_indicators_engineer.py` |
+| Christian | Data & Indicators Engineer | `data_indicators_engineers.py` |
 | Janisha | Fuzzy Inference Engine | `src/fuzzy_engine/` |
 | Felix | Signal Validation & Backtesting | `src/signal_validation_backtest.py` |
 | Krisantus | Web App & Visualization | `src/web/` & `run_web.py` |
@@ -17,7 +17,7 @@ Sistem pakar rekomendasi saham BEI/IDX menggunakan **Fuzzy Logic (Mamdani)** +
 ```
 Yahoo Finance (yfinance)
         v
-Christian: data_indicators_engineer.py
+Christian: data_indicators_engineers.py
         v
 storage_data/2_inference_ready/
   +-- BBCA_latest_facts.json  (fakta hari terakhir)
@@ -25,7 +25,7 @@ storage_data/2_inference_ready/
         v
 Janisha: fuzzy_engine/
   - fuzzifier.py      (4 input -> himpunan fuzzy)
-  - knowledge_base.py (aturan R1-R5)
+  - knowledge_base.py (aturan R1-R4)
   - inference.py      (Mamdani: implikasi MIN, agregasi MAX, centroid)
   - explainer.py      (narasi aturan terpicu)
         v
@@ -40,7 +40,7 @@ Janisha: fuzzy_engine/
 pip install -r requirements.txt
 
 # 1. Jalankan modul Christian dulu (biar file JSON terbentuk)
-python src/data_indicators_engineer.py
+python data_indicators_engineers.py
 # Tunggu storage_data/2_inference_ready/ terisi, lalu Ctrl+C
 
 # 2. Jalankan fuzzy inference engine
@@ -64,7 +64,7 @@ result = infer(facts)   # facts = dict dari file JSON Christian
     "decision": "BELI" | "TAHAN",
     "signal_strength": float,            # 0-100 (hasil defuzzifikasi centroid)
     "triggered_rules": [
-        {"id": "R1", "description": "...", "consequent": "strong",
+        {"id": "R1", "description": "...", "consequent": "kuat",
          "firing_strength": 0.82}
     ],
     "all_rules": [...],                  # semua aturan + alpha (buat debugging)

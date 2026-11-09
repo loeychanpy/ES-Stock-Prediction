@@ -16,9 +16,9 @@ from .membership import triangular, trapezoidal
 OUTPUT_RANGE = np.arange(0, 100.1, 1.0)
 
 
-def _mu_lemah(x):  return trapezoidal(x, 0, 0, 30, 50)
-def _mu_sedang(x): return triangular(x, 40, 60, 80)
-def _mu_kuat(x):   return trapezoidal(x, 70, 85, 100, 100)
+def _mu_lemah(x):  return trapezoidal(x, 0, 0, 25, 45)
+def _mu_sedang(x): return triangular(x, 45, 68, 88)
+def _mu_kuat(x):   return trapezoidal(x, 72, 85, 100, 100)
 
 OUTPUT_SETS = {
     "lemah":  _mu_lemah,

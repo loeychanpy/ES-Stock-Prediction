@@ -2,35 +2,35 @@
     "metadata": {
         "ticker": "TLKM.JK",
         "code": "TLKM",
-        "date": "2026-11-02",
-        "timestamp_update": "2026-11-02 15:57:47 WIB",
-        "status_data": "FINAL (EOD)",
+        "date": "2026-11-09",
+        "timestamp_update": "2026-11-09 14:30:41 WIB",
+        "status_data": "SEMENTARA (Intraday Delayed ~15m)",
         "source_csv_file": "storage_data\\2_inference_ready\\TLKM_clean_indicators.csv"
     },
     "price_volume": {
-        "open": 2000.0,
-        "high": 2000.0,
-        "low": 1935.0,
-        "close": 1960.0,
-        "volume": 172761800
+        "open": 2020.0,
+        "high": 2090.0,
+        "low": 1980.0,
+        "close": 2070.0,
+        "volume": 126510200
     },
     "fuzzy_inputs": {
-        "rsi_14": 36.0817,
-        "macd_hist": -4.7652,
-        "bb_pct_b": 0.2077,
-        "volume_ratio": 0.5079
+        "rsi_14": 46.824,
+        "macd_hist": 8.9204,
+        "bb_pct_b": 0.5176,
+        "volume_ratio": 0.361
     },
     "validation_filter": {
-        "sma_20": 2142.0,
-        "sma_50": 2373.0,
+        "sma_20": 2059.75,
+        "sma_50": 2309.1,
         "is_uptrend": false,
-        "local_min_n": 1935.0,
-        "near_local_min": true,
+        "local_min_n": 1845.0,
+        "near_local_min": false,
         "signal_valid": false
     },
     "risk_management": {
-        "atr_14": 104.3886,
-        "initial_sl_estimate": 1803.42,
-        "initial_tp_estimate": 2273.17
+        "atr_14": 103.8786,
+        "initial_sl_estimate": 1914.18,
+        "initial_tp_estimate": 2381.64
     }
 }

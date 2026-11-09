@@ -47,7 +47,7 @@ def create_app():
     def dashboard():
         available_stocks = get_available_stocks()
         selected_ticker = request.args.get("ticker", "").upper().strip()
-        period = request.args.get("period", "1Y").upper().strip()
+        period = request.args.get("period", "6M").upper().strip()
 
         # Default ke saham pertama jika tidak dipilih
         if not selected_ticker:
@@ -120,14 +120,14 @@ def create_app():
 
         if request.method == "POST":
             ticker = request.form.get("ticker", available_stocks[0]).upper().strip()
-            n_days = int(request.form.get("n_days", 20))
-            near_pct = float(request.form.get("near_pct", 2.0)) / 100.0
+            n_days = int(request.form.get("n_days", 5))
+            near_pct = float(request.form.get("near_pct", 3.0)) / 100.0
             tp_mult = float(request.form.get("tp_mult", 3.0))
             sl_mult = float(request.form.get("sl_mult", 1.5))
         else:
             ticker = request.args.get("ticker", available_stocks[0]).upper().strip()
-            n_days = int(request.args.get("n_days", 20))
-            near_pct = float(request.args.get("near_pct", 2.0)) / 100.0
+            n_days = int(request.args.get("n_days", 5))
+            near_pct = float(request.args.get("near_pct", 3.0)) / 100.0
             tp_mult = float(request.args.get("tp_mult", 3.0))
             sl_mult = float(request.args.get("sl_mult", 1.5))
 
@@ -166,6 +166,10 @@ def create_app():
                 trades_list = trades_df.to_dict(orient="records")
                 # Format dates nicely
                 for t in trades_list:
+                    if hasattr(t.get("signal_date"), "strftime"):
+                        t["signal_date_str"] = t["signal_date"].strftime("%d/%m/%Y")
+                    else:
+                        t["signal_date_str"] = str(t.get("signal_date", "-"))
                     if hasattr(t.get("entry_date"), "strftime"):
                         t["entry_date_str"] = t["entry_date"].strftime("%d/%m/%Y")
                     else:

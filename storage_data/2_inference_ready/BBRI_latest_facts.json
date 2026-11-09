@@ -2,35 +2,35 @@
     "metadata": {
         "ticker": "BBRI.JK",
         "code": "BBRI",
-        "date": "2026-11-02",
-        "timestamp_update": "2026-11-02 15:57:47 WIB",
-        "status_data": "FINAL (EOD)",
+        "date": "2026-11-09",
+        "timestamp_update": "2026-11-09 14:30:40 WIB",
+        "status_data": "SEMENTARA (Intraday Delayed ~15m)",
         "source_csv_file": "storage_data\\2_inference_ready\\BBRI_clean_indicators.csv"
     },
     "price_volume": {
-        "open": 2800.0,
-        "high": 2840.0,
-        "low": 2770.0,
-        "close": 2810.0,
-        "volume": 160596500
+        "open": 2830.0,
+        "high": 2850.0,
+        "low": 2780.0,
+        "close": 2800.0,
+        "volume": 161517700
     },
     "fuzzy_inputs": {
-        "rsi_14": 39.9204,
-        "macd_hist": 0.9436,
-        "bb_pct_b": 0.3299,
-        "volume_ratio": 0.4343
+        "rsi_14": 43.9916,
+        "macd_hist": 4.7241,
+        "bb_pct_b": 0.4421,
+        "volume_ratio": 0.4083
     },
     "validation_filter": {
-        "sma_20": 2925.0,
-        "sma_50": 3123.2,
+        "sma_20": 2834.5,
+        "sma_50": 3078.8,
         "is_uptrend": false,
-        "local_min_n": 2740.0,
-        "near_local_min": true,
+        "local_min_n": 2650.0,
+        "near_local_min": false,
         "signal_valid": false
     },
     "risk_management": {
-        "atr_14": 117.8022,
-        "initial_sl_estimate": 2633.3,
-        "initial_tp_estimate": 3163.41
+        "atr_14": 117.4948,
+        "initial_sl_estimate": 2623.76,
+        "initial_tp_estimate": 3152.48
     }
 }
