@@ -19,7 +19,10 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from fuzzy_engine import infer
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from rule_engine import infer, build_facts  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(ROOT, "storage_data", "2_inference_ready")
@@ -80,26 +83,8 @@ def evaluate_npmm_proximity(detail: pd.DataFrame, n_days: int = 5,
     }
 
 
-def _facts(row: pd.Series, atr_tp_mult: float, atr_sl_mult: float) -> dict:
-    close, atr = float(row.Close), float(row.ATR_14)
-    return {
-        "fuzzy_inputs": {
-            "rsi_14": float(row.RSI_14), "macd_hist": float(row.MACD_Hist),
-            "bb_pct_b": float(row.BB_PctB), "volume_ratio": float(row.Volume_Ratio),
-        },
-        "validation_filter": {"signal_valid": bool(row.Signal_Valid_Recalc)},
-        "risk_management": {
-            "initial_tp_estimate": close + atr_tp_mult * atr,
-            "initial_sl_estimate": close - atr_sl_mult * atr,
-        },
-        "price_volume": {"close": close, "open": float(row.Open),
-                         "high": float(row.High), "low": float(row.Low),
-                         "volume": int(row.Volume)},
-    }
-
-
 def _build_signal_snapshot(sig_row: pd.Series, inf_result: dict) -> dict:
-    """Susun rekaman lengkap seluruh indikator, filter, dan aturan fuzzy pada saat sinyal muncul."""
+    """Susun rekaman lengkap indikator, filter, pemicu, dan aturan pada saat sinyal muncul."""
     prior_low = float(sig_row.Prior_N_Day_Low) if pd.notna(sig_row.Prior_N_Day_Low) else float(sig_row.Low)
     close_val = float(sig_row.Close)
     dist_low_pct = ((close_val - prior_low) / prior_low * 100.0) if prior_low > 0 else 0.0
@@ -121,8 +106,6 @@ def _build_signal_snapshot(sig_row: pd.Series, inf_result: dict) -> dict:
             "bb_middle": round(float(sig_row.BB_Middle), 2) if "BB_Middle" in sig_row else 0.0,
             "bb_lower": round(float(sig_row.BB_Lower), 2) if "BB_Lower" in sig_row else 0.0,
             "bb_pct_b": round(float(sig_row.BB_PctB), 4),
-            "volume_sma_20": int(sig_row.Volume_SMA_20) if "Volume_SMA_20" in sig_row and pd.notna(sig_row.Volume_SMA_20) else 0,
-            "volume_ratio": round(float(sig_row.Volume_Ratio), 2),
             "sma_20": round(float(sig_row.SMA_20), 2),
             "sma_50": round(float(sig_row.SMA_50), 2),
             "atr_14": round(float(sig_row.ATR_14), 2),
@@ -134,7 +117,7 @@ def _build_signal_snapshot(sig_row: pd.Series, inf_result: dict) -> dict:
             "local_min_valid": bool(sig_row.Local_Min_Valid),
             "signal_valid": bool(sig_row.Signal_Valid_Recalc),
         },
-        "fuzzified_inputs": inf_result.get("fuzzified_inputs", {}),
+        "events": inf_result.get("events", {}),
         "all_rules": inf_result.get("all_rules", []),
         "triggered_rules": inf_result.get("triggered_rules", []),
         "explanation": inf_result.get("explanation", ""),
@@ -182,13 +165,13 @@ def backtest(df: pd.DataFrame, n_days: int = 5, near_pct: float = 0.03,
         raise ValueError("Data terlalu sedikit untuk backtest; tambah rentang data atau kecilkan N hari")
 
     decisions: dict[Any, dict] = {}
-    for dt, row in data.iterrows():
-        # Warm-up indicators must be present before fuzzy evaluation.
-        fuzzy_cols = ["RSI_14", "MACD_Hist", "BB_PctB", "Volume_Ratio"]
-        if row[fuzzy_cols].isna().any():
+    indicator_cols = ["RSI_14", "MACD_Hist", "BB_PctB"]
+    for pos, (dt, row) in enumerate(data.iterrows()):
+        # Indikator (masa warm-up) harus tersedia sebelum evaluasi aturan.
+        if row[indicator_cols].isna().any():
             continue
-        result = infer(_facts(row, atr_tp_mult, atr_sl_mult))
-        decisions[dt] = result
+        facts = build_facts(data, pos, bool(row.Signal_Valid_Recalc), atr_tp_mult, atr_sl_mult)
+        decisions[dt] = infer(facts)
 
     trades: list[dict] = []
     daily_equity = []
@@ -237,7 +220,7 @@ def backtest(df: pd.DataFrame, n_days: int = 5, near_pct: float = 0.03,
                         "entry": entry,
                         "tp": entry + atr_tp_mult * atr,
                         "sl": entry - atr_sl_mult * atr,
-                        "signal_strength": prev_result["signal_strength"],
+                        "buy_rules": ", ".join(prev_result["buy_rules_fired"]),
                         "snapshot": _build_signal_snapshot(prev_row, prev_result),
                     }
         # Mark-to-market equity for drawdown; approximate daily exposure return.
@@ -252,44 +235,23 @@ def backtest(df: pd.DataFrame, n_days: int = 5, near_pct: float = 0.03,
     benchmark = (last_close / first_open) * (1 - buy_fee) * (1 - sell_fee) - 1
     summary = _metrics([t["return_pct"] / 100 for t in trades], daily_equity, trades, benchmark)
     detail = data.copy()
-    detail["Fuzzy_Decision"] = [decisions.get(d, {}).get("decision", "SKIP") for d in detail.index]
-    detail["Signal_Strength"] = [decisions.get(d, {}).get("signal_strength", np.nan) for d in detail.index]
-    detail["Fuzzy_Signal_Valid"] = [decisions.get(d, {}).get("signal_valid", False) for d in detail.index]
-    detail["Buy_Signal"] = detail["Fuzzy_Decision"].eq("BELI") & detail["Signal_Valid_Recalc"]
+    detail["Rule_Decision"] = [decisions.get(d, {}).get("decision", "SKIP") for d in detail.index]
+    detail["Buy_Rules"] = [",".join(decisions.get(d, {}).get("buy_rules_fired", [])) for d in detail.index]
+    detail["Hold_Rules"] = [",".join(decisions.get(d, {}).get("hold_rules_fired", [])) for d in detail.index]
+    detail["Buy_Signal"] = detail["Rule_Decision"].eq("BELI") & detail["Signal_Valid_Recalc"]
     detail["Equity_Curve"] = np.round(daily_equity, 6)
     detail["Buy_Hold_Equity"] = np.round((detail["Close"] / first_open) * (1 - buy_fee), 6)
 
     npmm_eval = evaluate_npmm_proximity(detail, n_days=n_days, tol_pct=near_pct)
     summary.update({"n_days": len(data), "valid_signal_days": int(data.Signal_Valid_Recalc.sum()),
-                    "fuzzy_buy_days": int(detail.Buy_Signal.sum()),
+                    "rule_buy_days": int(detail.Buy_Signal.sum()),
+                    "raw_trigger_days": int(detail["Buy_Rules"].ne("").sum()),
                     "npmm_evaluation": npmm_eval,
                     "parameters": {"n_days": n_days, "near_pct": near_pct,
                                    "atr_tp_mult": atr_tp_mult, "atr_sl_mult": atr_sl_mult,
                                    "buy_fee_pct": buy_fee * 100, "sell_fee_pct": sell_fee * 100},
                     "trades_detail": pd.DataFrame(trades), "daily_detail": detail})
     return summary
-
-
-def calibrate_membership(df: pd.DataFrame, train_ratio: float = 0.7) -> dict:
-    """Suggest data-scaled fuzzy breakpoints from TRAINING quantiles only.
-
-    Quantile diagnostics are suggestions, not automatically applied to the
-    production fuzzy engine. Test rows are deliberately excluded.
-    """
-    split = max(1, int(len(df) * train_ratio))
-    train = df.iloc[:split]
-    specs = {"rsi_14": ("RSI_14", [0.10, 0.35, 0.65, 0.90]),
-             "macd_hist": ("MACD_Hist", [0.10, 0.35, 0.65, 0.90]),
-             "bb_pct_b": ("BB_PctB", [0.10, 0.35, 0.65, 0.90]),
-             "volume_ratio": ("Volume_Ratio", [0.10, 0.35, 0.65, 0.90])}
-    result = {}
-    for key, (col, qs) in specs.items():
-        vals = train[col].dropna()
-        result[key] = {f"q{int(q*100)}": round(float(vals.quantile(q)), 6) for q in qs}
-    result["training_rows"] = split
-    result["test_rows_excluded"] = len(df) - split
-    result["note"] = "Gunakan kuantil sebagai kandidat; cek firing rule dan validasi pada data test sebelum menetapkan."
-    return result
 
 
 def calibrate_atr(df: pd.DataFrame, n_days: int = 5, near_pct: float = 0.03,
@@ -326,8 +288,6 @@ def run_one(code: str, save_details: bool = False) -> dict:
     for k, v in result.items():
         if k not in {"trades_detail", "daily_detail"}:
             print(f"{k}: {v}")
-    print("\nMembership calibration (training quantiles):")
-    print(json.dumps(calibrate_membership(df), indent=2))
     atr_cal = calibrate_atr(df)
     print("\nATR multiplier candidates (TRAIN only):")
     print(atr_cal.head(10).to_string(index=False) if not atr_cal.empty else "Tidak ada kombinasi yang dapat diuji")
@@ -337,8 +297,6 @@ def run_one(code: str, save_details: bool = False) -> dict:
         trades_csv_df.to_csv(os.path.join(OUT_DIR, f"{code.upper()}_trades.csv"), index=False)
         result["daily_detail"].to_csv(os.path.join(OUT_DIR, f"{code.upper()}_daily.csv"))
         atr_cal.to_csv(os.path.join(OUT_DIR, f"{code.upper()}_atr_calibration.csv"), index=False)
-        with open(os.path.join(OUT_DIR, f"{code.upper()}_membership_calibration.json"), "w") as f:
-            json.dump(calibrate_membership(df), f, indent=2)
         print(f"\nDetail disimpan di: {OUT_DIR}")
     return result
 

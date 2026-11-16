@@ -12,7 +12,7 @@
     <div class="card-header-terminal px-0 pt-0 mb-3">
       <div class="d-flex align-items-center gap-2">
         <i class="bi bi-sliders text-info fs-5"></i>
-        <span>Konfigurasi Parameter Simulasi Event-Driven Backtest</span>
+        <span>Konfigurasi Parameter Simulasi Event-Driven Backtest (Rule-Based)</span>
       </div>
       <span class="badge bg-dark border border-secondary text-muted">Bebas Look-Ahead Bias &bull; Fee Beli 0.15% / Jual 0.25%</span>
     </div>
@@ -95,7 +95,7 @@
           {{ summary.total_return_pct if summary else '0.0' }}%
         </div>
         <div class="small text-muted mt-1">
-          Buy & Hold: <span class="font-mono-num text-light">{{ summary.buy_and_hold_return_pct if summary else '0.0' }}%</span>
+          Buy &amp; Hold: <span class="font-mono-num text-light">{{ summary.buy_and_hold_return_pct if summary else '0.0' }}%</span>
         </div>
       </div>
     </div>
@@ -131,12 +131,12 @@
     <!-- Excess vs Benchmark -->
     <div class="col-xl-3 col-md-6">
       <div class="metric-box">
-        <div class="metric-title">Excess vs Buy & Hold (Alpha)</div>
+        <div class="metric-title">Excess vs Buy &amp; Hold (Alpha)</div>
         <div class="metric-value font-mono-num {% if summary and summary.excess_vs_buy_hold_pct >= 0 %}text-success{% else %}text-danger{% endif %}">
           {{ summary.excess_vs_buy_hold_pct if summary else '0.0' }}%
         </div>
         <div class="small text-muted mt-1">
-          Hari Sinyal Beli Fuzzy: <span class="font-mono-num text-light">{{ summary.fuzzy_buy_days if summary else 0 }}</span> dari {{ summary.valid_signal_days if summary else 0 }} hari valid
+          Hari Sinyal Beli (Rule-Based): <span class="font-mono-num text-light">{{ summary.rule_buy_days if summary else 0 }}</span> dari {{ summary.valid_signal_days if summary else 0 }} hari valid
         </div>
       </div>
     </div>
@@ -149,7 +149,7 @@
     <div class="card-header-terminal px-3 py-2">
       <div class="d-flex align-items-center gap-2">
         <i class="bi bi-bar-chart-steps text-success"></i>
-        <span>Grafik Candlestick, Seluruh Indikator Teknikal (BB, SMA, Vol, RSI, MACD, ATR) &amp; Pertumbuhan Modal</span>
+        <span>Grafik Candlestick, Indikator Teknikal (SMA, %B, RSI, MACD, ATR) &amp; Pertumbuhan Modal</span>
       </div>
       <div class="text-muted small">
         <span class="badge bg-dark border border-secondary text-info">6-Pane Interactive Chart &bull; Titik Sinyal BELI &amp; TP/SL</span>
@@ -169,7 +169,7 @@
         <i class="bi bi-journal-text text-warning"></i>
         <span>Riwayat Transaksi Perdagangan (Trade Log) &ndash; {{ selected_ticker }}</span>
       </div>
-      <span class="badge bg-dark border border-secondary text-light">Total: {{ trades | length }} Transaksi (Klik "Lihat Penalaran" untuk detail kondisi saat itu)</span>
+      <span class="badge bg-dark border border-secondary text-light">Total: {{ trades | length }} Transaksi (Klik "Lihat Penalaran" untuk detail aturan yang memicu transaksi)</span>
     </div>
 
     {% if trades and trades | length > 0 %}
@@ -186,7 +186,7 @@
               <th class="text-end">Target TP</th>
               <th class="text-end">Stop Loss</th>
               <th>Alasan Keluar</th>
-              <th class="text-center">Skor Sinyal</th>
+              <th class="text-center">Status Aturan</th>
               <th class="text-end">Net Return</th>
               <th class="text-center">Detail Saat Itu</th>
             </tr>
@@ -215,7 +215,9 @@
                     <span class="badge bg-secondary font-mono-num">{{ t.exit_reason }}</span>
                   {% endif %}
                 </td>
-                <td class="text-center font-mono-num text-info fw-bold">{{ t.signal_strength }}/100</td>
+                <td class="text-center">
+                  <span class="badge bg-success-subtle text-success font-mono-num">TERPENUHI</span>
+                </td>
                 <td class="text-end font-mono-num fw-bold {% if t.return_pct > 0 %}text-success{% else %}text-danger{% endif %}">
                   {{ "{:+.2f}%".format(t.return_pct) }}
                 </td>
@@ -246,7 +248,7 @@
       <div class="card-header-terminal px-0 pt-0 mb-3 flex-wrap gap-2">
         <div class="d-flex align-items-center gap-2">
           <i class="bi bi-cpu-fill text-info fs-5"></i>
-          <span>Rekam Jejak Kondisi Pasar &amp; Penalaran Sistem Pakar Saat Sinyal BELI Terjadi (Simulasi Real-Time)</span>
+          <span>Rekam Jejak Kondisi Indikator &amp; Aturan IF&ndash;THEN Saat Sinyal BELI Terjadi</span>
         </div>
         <!-- Trade Selector Pills -->
         <div class="btn-group btn-group-sm flex-wrap" role="group">
@@ -277,7 +279,7 @@
                 </div>
                 <div class="small text-light lh-base">
                   Pada penutupan pasar tanggal <strong>{{ t.signal_date_str }}</strong>, harga saham <strong>{{ selected_ticker }}</strong> ditutup di <strong>Rp {{ "{:,.0f}".format(snap.ohlcv.close).replace(',', '.') }}</strong> (Open: Rp {{ "{:,.0f}".format(snap.ohlcv.open).replace(',', '.') }}, High: Rp {{ "{:,.0f}".format(snap.ohlcv.high).replace(',', '.') }}, Low: Rp {{ "{:,.0f}".format(snap.ohlcv.low).replace(',', '.') }}).
-                  Karena seluruh filter validasi terpenuhi dan skor defuzzifikasi Centroid mencapai <strong>{{ t.signal_strength }}/100 (&ge; 70)</strong>, sistem mengeluarkan rekomendasi <strong>BELI</strong> yang dieksekusi pada pembukaan hari berikutnya (<strong>{{ t.entry_date_str }}</strong>) di harga <strong>Rp {{ "{:,.0f}".format(t.entry).replace(',', '.') }}</strong>.
+                  Karena filter validasi dan aturan beli <strong>IF&ndash;THEN (Rule-Based)</strong> terpenuhi, sistem mengeluarkan keputusan <strong>BELI</strong> yang dieksekusi pada pembukaan hari berikutnya (<strong>{{ t.entry_date_str }}</strong>) di harga <strong>Rp {{ "{:,.0f}".format(t.entry).replace(',', '.') }}</strong>.
                 </div>
               </div>
               <div class="col-lg-4 text-lg-end">
@@ -326,19 +328,14 @@
                     </div>
                   </div>
 
-                  <!-- Skor Centroid Meter -->
+                  <!-- Status Keputusan Rule-Based -->
                   <div class="mb-2">
                     <div class="d-flex justify-content-between small mb-1">
-                      <span class="text-muted">Skor Defuzzifikasi Centroid Saat Itu:</span>
-                      <span class="fw-bold font-mono-num text-success">{{ t.signal_strength }} / 100</span>
+                      <span class="text-muted">Status Evaluasi Aturan Beli:</span>
+                      <span class="fw-bold font-mono-num text-success">TERPENUHI (BELI)</span>
                     </div>
                     <div class="progress progress-dark">
-                      <div class="progress-bar bg-success" role="progressbar" style="width: {{ t.signal_strength }}%;"></div>
-                    </div>
-                    <div class="d-flex justify-content-between text-muted" style="font-size: 0.65rem;">
-                      <span>0 (Lemah)</span>
-                      <span>Ambang Beli: &ge;70</span>
-                      <span>100 (Kuat)</span>
+                      <div class="progress-bar bg-success" role="progressbar" style="width: 100%;"></div>
                     </div>
                   </div>
                 </div>
@@ -372,70 +369,57 @@
               </div>
             </div>
 
-            <!-- Kolom Kanan: Seluruh Indikator Teknikal & Derajat Fuzzifikasi Saat Itu -->
+            <!-- Kolom Kanan: Seluruh Indikator Teknikal & Status Pemicu Rule-Based Saat Itu -->
             <div class="col-xl-8 col-lg-7">
               <div class="p-3 rounded bg-dark border border-secondary h-100">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                   <span class="text-uppercase text-muted small fw-bold">
-                    2. Nilai Seluruh Indikator Teknikal &amp; Derajat Keanggotaan Fuzzy ({{ t.signal_date_str }})
+                    2. Nilai Indikator Teknikal &amp; Status Pemicu Rule-Based ({{ t.signal_date_str }})
                   </span>
-                  <span class="badge bg-dark border border-secondary text-info">4 Input Fuzzy + ATR</span>
+                  <span class="badge bg-dark border border-secondary text-info">3 Indikator (RSI, MACD, %B) + ATR</span>
                 </div>
 
+                {% set ev = snap.events %}
                 <div class="row g-2 mb-3">
                   <!-- RSI 14 -->
-                  <div class="col-md-3 col-6">
+                  <div class="col-md-4 col-12">
                     <div class="metric-box p-2">
                       <div class="metric-title">RSI (14)</div>
                       <div class="metric-value font-mono-num fs-5 text-warning">{{ snap.indicators.rsi_14 }}</div>
                       <div class="small text-muted mt-1" style="font-size: 0.70rem;">
-                        {% if snap.fuzzified_inputs and snap.fuzzified_inputs.rsi %}
-                          Rendah: <strong class="text-light">{{ snap.fuzzified_inputs.rsi.rendah }}</strong><br>
-                          Sedang: {{ snap.fuzzified_inputs.rsi.sedang }} &bull; Tinggi: {{ snap.fuzzified_inputs.rsi.tinggi }}
+                        Kemarin: {{ ev.rsi.prev if ev and ev.rsi and ev.rsi.prev is not none else '-' }}<br>
+                        {% if ev and ev.rsi %}
+                          <span class="fw-semibold {% if ev.rsi.touch_30_from_above %}text-success{% elif ev.rsi.touch_70_from_below %}text-danger{% else %}text-info{% endif %}">{{ ev.rsi.status }}</span>
                         {% endif %}
                       </div>
                     </div>
                   </div>
 
                   <!-- MACD -->
-                  <div class="col-md-3 col-6">
+                  <div class="col-md-4 col-12">
                     <div class="metric-box p-2">
                       <div class="metric-title">MACD Histogram</div>
-                      <div class="metric-value font-mono-num fs-5 {% if snap.indicators.macd_hist >= 0 %}text-success{% else %}text-danger{% endif %}">
+                      <div class="metric-value font-mono-num fs-5 {% if snap.indicators.macd_hist > 0 %}text-success{% else %}text-danger{% endif %}">
                         {{ "{:+.2f}".format(snap.indicators.macd_hist) }}
                       </div>
                       <div class="small text-muted mt-1" style="font-size: 0.70rem;">
-                        Line: {{ snap.indicators.macd_line }} | Sig: {{ snap.indicators.macd_signal }}<br>
-                        {% if snap.fuzzified_inputs and snap.fuzzified_inputs.macd %}
-                          Positif: <strong class="text-success">{{ snap.fuzzified_inputs.macd.positif }}</strong> &bull; Neg: {{ snap.fuzzified_inputs.macd.negatif }}
+                        Kemarin: {{ ev.macd.prev if ev and ev.macd and ev.macd.prev is not none else '-' }}<br>
+                        {% if ev and ev.macd %}
+                          <span class="fw-semibold {% if ev.macd.cross_up_zero %}text-success{% elif ev.macd.cross_down_zero %}text-danger{% else %}text-muted{% endif %}">{{ ev.macd.status }}</span>
                         {% endif %}
                       </div>
                     </div>
                   </div>
 
-                  <!-- Bollinger %B -->
-                  <div class="col-md-3 col-6">
+                  <!-- Indikator %B -->
+                  <div class="col-md-4 col-12">
                     <div class="metric-box p-2">
-                      <div class="metric-title">Bollinger %B</div>
+                      <div class="metric-title">Indikator %B</div>
                       <div class="metric-value font-mono-num fs-5 text-info">{{ snap.indicators.bb_pct_b }}</div>
                       <div class="small text-muted mt-1" style="font-size: 0.70rem;">
-                        L: {{ "{:,.0f}".format(snap.indicators.bb_lower).replace(',', '.') }} | U: {{ "{:,.0f}".format(snap.indicators.bb_upper).replace(',', '.') }}<br>
-                        {% if snap.fuzzified_inputs and snap.fuzzified_inputs.bb %}
-                          Rendah: <strong class="text-light">{{ snap.fuzzified_inputs.bb.rendah }}</strong> &bull; S: {{ snap.fuzzified_inputs.bb.sedang }}
-                        {% endif %}
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Volume Ratio -->
-                  <div class="col-md-3 col-6">
-                    <div class="metric-box p-2">
-                      <div class="metric-title">Volume Ratio</div>
-                      <div class="metric-value font-mono-num fs-5 text-light">{{ snap.indicators.volume_ratio }}x</div>
-                      <div class="small text-muted mt-1" style="font-size: 0.70rem;">
-                        Vol: {{ "{:,.0f}".format(snap.ohlcv.volume).replace(',', '.') }}<br>
-                        {% if snap.fuzzified_inputs and snap.fuzzified_inputs.volume %}
-                          Tinggi: <strong class="text-light">{{ snap.fuzzified_inputs.volume.tinggi }}</strong> &bull; N: {{ snap.fuzzified_inputs.volume.normal }}
+                        Kemarin: {{ ev.bb.prev if ev and ev.bb and ev.bb.prev is not none else '-' }}<br>
+                        {% if ev and ev.bb %}
+                          <span class="fw-semibold {% if ev.bb.touch_0_from_above or ev.bb.cross_up_05 or ev.bb.bounce_up_05 %}text-success{% elif ev.bb.touch_1_from_below or ev.bb.cross_down_05 or ev.bb.reject_down_05 %}text-danger{% else %}text-muted{% endif %}">{{ ev.bb.status }}</span>
                         {% endif %}
                       </div>
                     </div>
@@ -452,34 +436,29 @@
                   </div>
                 </div>
 
-                <!-- Evaluasi Keempat Aturan R1 - R4 Saat Itu -->
+                <!-- Evaluasi Aturan R1 - R10 Saat Itu -->
                 <div class="text-uppercase text-muted small fw-bold mb-2" style="font-size: 0.72rem;">
-                  3. Kontribusi Aturan Fuzzy IF&ndash;THEN (R1 &ndash; R4) Pada Tanggal {{ t.signal_date_str }}:
+                  3. Status Evaluasi Aturan IF&ndash;THEN (R1 &ndash; R10) Pada Tanggal {{ t.signal_date_str }}:
                 </div>
                 <div class="row g-2">
                   {% for r in snap.all_rules %}
                     <div class="col-md-6">
-                      <div class="rule-item mb-0 py-2 px-3 {% if r.consequent == 'kuat' and r.firing_strength > 0 %}active-strong{% elif r.consequent == 'sedang' and r.firing_strength > 0 %}active-medium{% elif r.consequent == 'lemah' and r.firing_strength > 0 %}active-weak{% endif %}">
+                      <div class="rule-item mb-0 py-2 px-3 {% if r.consequent == 'BELI' and r.fired %}active-strong{% elif r.consequent == 'TAHAN' and r.fired %}active-weak{% endif %}">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                          <span class="fw-bold font-mono-num text-info">{{ r.id }}</span>
+                          <span class="fw-bold font-mono-num text-info">{{ r.id }} <span class="text-muted small">({{ r.indicator }})</span></span>
                           <div>
-                            {% if r.firing_strength > 0 %}
-                              <span class="badge bg-success-subtle text-success me-1" style="font-size: 0.62rem;">AKTIF (&alpha;={{ r.firing_strength }})</span>
+                            {% if r.fired %}
+                              <span class="badge bg-success text-white me-1" style="font-size: 0.62rem;">TERPICU (TRUE)</span>
                             {% else %}
-                              <span class="badge bg-secondary bg-opacity-25 text-muted me-1" style="font-size: 0.62rem;">TIDAK AKTIF (0.0)</span>
+                              <span class="badge bg-secondary bg-opacity-25 text-muted me-1" style="font-size: 0.62rem;">TIDAK TERPICU (FALSE)</span>
                             {% endif %}
-                            <span class="badge {% if r.consequent == 'kuat' %}bg-success{% elif r.consequent == 'sedang' %}bg-info text-dark{% else %}bg-secondary{% endif %} text-uppercase" style="font-size: 0.62rem;">
+                            <span class="badge {% if r.consequent == 'BELI' %}bg-success{% else %}bg-danger{% endif %} text-uppercase" style="font-size: 0.62rem;">
                               {{ r.consequent }}
                             </span>
                           </div>
                         </div>
                         <div class="small text-light font-mono-num mb-1" style="font-size: 0.74rem;">
                           {{ r.description }}
-                        </div>
-                        <div class="progress progress-dark" style="height: 4px;">
-                          <div class="progress-bar {% if r.consequent == 'kuat' %}bg-success{% elif r.consequent == 'sedang' %}bg-info{% else %}bg-danger{% endif %}" 
-                               role="progressbar" 
-                               style="width: {{ r.firing_strength * 100 }}%;"></div>
                         </div>
                       </div>
                     </div>
@@ -501,17 +480,14 @@
 {% block extra_scripts %}
 <script>
   function selectTradeSnapshot(idx) {
-    // Sembunyikan semua panel snapshot
     document.querySelectorAll('.trade-snapshot-pane').forEach(function(el) {
       el.classList.add('d-none');
     });
-    // Tampilkan panel yang dipilih
     const targetPane = document.getElementById('tradeSnapshot-' + idx);
     if (targetPane) {
       targetPane.classList.remove('d-none');
     }
 
-    // Update tombol tab aktif
     document.querySelectorAll('[id^="btnTradeTab-"]').forEach(function(btn) {
       btn.className = 'btn btn-outline-secondary text-light';
     });
@@ -520,7 +496,6 @@
       activeBtn.className = 'btn btn-info text-dark fw-bold';
     }
 
-    // Scroll halus ke panel penjelasan
     const panel = document.getElementById('signalInspectorPanel');
     if (panel) {
       panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

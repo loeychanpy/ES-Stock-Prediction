@@ -3,26 +3,26 @@
         "ticker": "TLKM.JK",
         "code": "TLKM",
         "date": "2026-11-09",
-        "timestamp_update": "2026-11-09 14:30:41 WIB",
-        "status_data": "SEMENTARA (Intraday Delayed ~15m)",
+        "timestamp_update": "2026-11-09 22:34:42 WIB",
+        "status_data": "FINAL (EOD)",
         "source_csv_file": "storage_data\\2_inference_ready\\TLKM_clean_indicators.csv"
     },
     "price_volume": {
         "open": 2020.0,
         "high": 2090.0,
         "low": 1980.0,
-        "close": 2070.0,
-        "volume": 126510200
+        "close": 2050.0,
+        "volume": 193182000
     },
     "fuzzy_inputs": {
-        "rsi_14": 46.824,
-        "macd_hist": 8.9204,
-        "bb_pct_b": 0.5176,
-        "volume_ratio": 0.361
+        "rsi_14": 45.5685,
+        "macd_hist": 7.644,
+        "bb_pct_b": 0.485,
+        "volume_ratio": 0.5461
     },
     "validation_filter": {
-        "sma_20": 2059.75,
-        "sma_50": 2309.1,
+        "sma_20": 2058.75,
+        "sma_50": 2308.7,
         "is_uptrend": false,
         "local_min_n": 1845.0,
         "near_local_min": false,
@@ -30,7 +30,7 @@
     },
     "risk_management": {
         "atr_14": 103.8786,
-        "initial_sl_estimate": 1914.18,
-        "initial_tp_estimate": 2381.64
+        "initial_sl_estimate": 1894.18,
+        "initial_tp_estimate": 2361.64
     }
 }

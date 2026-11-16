@@ -2,7 +2,7 @@
 Utility functions for Web App:
 - Chart creation with Plotly (Candlestick, Indicators, Equity Curve)
 - Data loading and caching
-- Integration helpers for Christian's scraper, Janisha's fuzzy engine, and Felix's backtester
+- Integration helpers for Christian's scraper, Janisha's rule-based engine, and Felix's backtester
 """
 
 import os
@@ -74,9 +74,9 @@ def filter_by_period(df: pd.DataFrame, period: str = "6M") -> pd.DataFrame:
 
 def create_candlestick_chart(df: pd.DataFrame, ticker: str, period: str = "6M") -> str:
     """
-    Membuat grafik interaktif 5-pane menggunakan Plotly Dark Mode (sesuai OUTPUT butir 2):
-    1. Candlestick (Solid Body) + SMA 20 + SMA 50 + Bollinger Bands
-    2. Volume Bar + Volume SMA 20
+    Membuat grafik interaktif 5-pane menggunakan Plotly Dark Mode:
+    1. Candlestick (Solid Body) + SMA 20 + SMA 50
+    2. Indikator %B + Garis Acuan 0.0, 0.5, dan 1.0
     3. RSI (14) + Batas Overbought (70) & Oversold (30)
     4. MACD Line + Signal Line + MACD Histogram
     5. ATR (14) - Average True Range (Volatilitas Penentu TP & SL)
@@ -91,10 +91,10 @@ def create_candlestick_chart(df: pd.DataFrame, ticker: str, period: str = "6M") 
         cols=1,
         shared_xaxes=True,
         vertical_spacing=0.025,
-        row_heights=[0.44, 0.13, 0.14, 0.15, 0.14],
+        row_heights=[0.42, 0.15, 0.14, 0.15, 0.14],
         subplot_titles=(
-            f"{ticker.upper()} Candlestick Price & Bollinger Bands / SMA",
-            "Volume",
+            f"{ticker.upper()} Candlestick Price & SMA (20/50)",
+            "Indikator %B (Garis 0.0, 0.5, 1.0)",
             "RSI (14)",
             "MACD (12, 26, 9)",
             "ATR (14) — Average True Range (Volatilitas)"
@@ -103,30 +103,7 @@ def create_candlestick_chart(df: pd.DataFrame, ticker: str, period: str = "6M") 
 
     dates = plot_df.index
 
-    # --- PANE 1: Candlestick & Overlays ---
-    # Bollinger Bands Shading (Lower to Upper)
-    if "BB_Upper" in plot_df.columns and "BB_Lower" in plot_df.columns:
-        fig.add_trace(
-            go.Scatter(
-                x=dates, y=plot_df["BB_Upper"],
-                line=dict(color="rgba(56, 189, 248, 0.35)", width=1, dash="dot"),
-                name="BB Upper",
-                showlegend=False
-            ),
-            row=1, col=1
-        )
-        fig.add_trace(
-            go.Scatter(
-                x=dates, y=plot_df["BB_Lower"],
-                line=dict(color="rgba(56, 189, 248, 0.35)", width=1, dash="dot"),
-                fill="tonexty",
-                fillcolor="rgba(56, 189, 248, 0.04)",
-                name="Bollinger Bands (20,2)",
-                showlegend=True
-            ),
-            row=1, col=1
-        )
-
+    # --- PANE 1: Candlestick & SMA Overlays ---
     # SMA 20 & SMA 50 (drawn behind candlesticks so candles stand out clearly)
     if "SMA_20" in plot_df.columns:
         fig.add_trace(
@@ -158,17 +135,22 @@ def create_candlestick_chart(df: pd.DataFrame, ticker: str, period: str = "6M") 
         row=1, col=1
     )
 
-    # --- PANE 2: Volume Bar ---
-    vol_colors = ["#22c55e" if c >= o else "#ef4444" for c, o in zip(plot_df["Close"], plot_df["Open"])]
-    fig.add_trace(
-        go.Bar(x=dates, y=plot_df["Volume"], marker_color=vol_colors, name="Volume", showlegend=False),
-        row=2, col=1
-    )
-    if "Volume_SMA_20" in plot_df.columns:
+    # --- PANE 2: Indikator %B ---
+    if "BB_PctB" in plot_df.columns:
         fig.add_trace(
-            go.Scatter(x=dates, y=plot_df["Volume_SMA_20"], line=dict(color="#a855f7", width=1.2), name="Vol SMA 20"),
+            go.Scatter(
+                x=dates, y=plot_df["BB_PctB"],
+                line=dict(color="#38bdf8", width=1.5),
+                name="%B",
+                showlegend=True
+            ),
             row=2, col=1
         )
+        # Garis referensi 1.0 (Batas Atas), 0.5 (Tengah / Pivot), 0.0 (Batas Bawah)
+        fig.add_hline(y=1.0, line_dash="dash", line_color="#ef4444", line_width=1, row=2, col=1)
+        fig.add_hline(y=0.5, line_dash="dot", line_color="#a855f7", line_width=1, row=2, col=1)
+        fig.add_hline(y=0.0, line_dash="dash", line_color="#22c55e", line_width=1, row=2, col=1)
+        fig.add_hrect(y0=0.0, y1=1.0, fillcolor="rgba(56, 189, 248, 0.04)", line_width=0, row=2, col=1)
 
     # --- PANE 3: RSI 14 ---
     if "RSI_14" in plot_df.columns:
@@ -247,7 +229,7 @@ def create_candlestick_chart(df: pd.DataFrame, ticker: str, period: str = "6M") 
 
     # Specialized Y-axis titles
     fig.update_yaxes(title_text="Harga (IDR)", row=1, col=1)
-    fig.update_yaxes(title_text="Vol", row=2, col=1)
+    fig.update_yaxes(title_text="%B", row=2, col=1)
     fig.update_yaxes(title_text="RSI", range=[0, 100], row=3, col=1)
     fig.update_yaxes(title_text="MACD", row=4, col=1)
     fig.update_yaxes(title_text="ATR (IDR)", row=5, col=1)
@@ -258,8 +240,8 @@ def create_candlestick_chart(df: pd.DataFrame, ticker: str, period: str = "6M") 
 def create_equity_curve_chart(backtest_res: dict, ticker: str) -> str:
     """
     Membuat grafik interaktif 6-pane lengkap untuk halaman Backtest:
-      - Pane 1: Candlestick Harga Saham (OHLC) + Bollinger Bands + SMA 20/50 + Titik Masuk (Buy) & Keluar (TP/SL)
-      - Pane 2: Volume + Volume SMA 20
+      - Pane 1: Candlestick Harga Saham (OHLC) + SMA 20/50 + Titik Masuk (Buy) & Keluar (TP/SL)
+      - Pane 2: Indikator %B + Titik Sinyal BELI (Garis 0.0, 0.5, 1.0)
       - Pane 3: RSI (14) + Titik Sinyal BELI
       - Pane 4: MACD (12, 26, 9) + Histogram + Titik Sinyal BELI
       - Pane 5: ATR (14) — Volatilitas
@@ -281,8 +263,8 @@ def create_equity_curve_chart(backtest_res: dict, ticker: str) -> str:
         vertical_spacing=0.022,
         row_heights=[0.36, 0.11, 0.13, 0.13, 0.11, 0.16],
         subplot_titles=(
-            f"Grafik Candlestick {ticker.upper()}, Bollinger Bands, SMA 20/50 & Titik Eksekusi (Entry / TP / SL)",
-            "Volume & Volume SMA 20",
+            f"Grafik Candlestick {ticker.upper()}, SMA 20/50 & Titik Eksekusi (Entry / TP / SL)",
+            "Indikator %B Saat Sinyal BELI (Garis 0.0, 0.5, 1.0)",
             "RSI (14) Saat Sinyal BELI",
             "MACD (12, 26, 9) & Histogram Saat Sinyal BELI",
             "ATR (14) — Average True Range (Volatilitas)",
@@ -291,30 +273,8 @@ def create_equity_curve_chart(backtest_res: dict, ticker: str) -> str:
     )
 
     # ==========================================================
-    # PANE 1: CANDLESTICK HARGA SAHAM + BB + SMA + MARKER BUY/EXIT
+    # PANE 1: CANDLESTICK HARGA SAHAM + SMA + MARKER BUY/EXIT
     # ==========================================================
-    if "BB_Upper" in daily_detail.columns and "BB_Lower" in daily_detail.columns:
-        fig.add_trace(
-            go.Scatter(
-                x=dates, y=daily_detail["BB_Upper"],
-                line=dict(color="rgba(56, 189, 248, 0.35)", width=1, dash="dot"),
-                name="BB Upper",
-                showlegend=False
-            ),
-            row=1, col=1
-        )
-        fig.add_trace(
-            go.Scatter(
-                x=dates, y=daily_detail["BB_Lower"],
-                line=dict(color="rgba(56, 189, 248, 0.35)", width=1, dash="dot"),
-                fill="tonexty",
-                fillcolor="rgba(56, 189, 248, 0.04)",
-                name="Bollinger Bands (20,2)",
-                showlegend=True
-            ),
-            row=1, col=1
-        )
-
     if "SMA_20" in daily_detail.columns:
         fig.add_trace(
             go.Scatter(
@@ -352,12 +312,12 @@ def create_equity_curve_chart(backtest_res: dict, ticker: str) -> str:
         row=1, col=1
     )
 
-    # Plot Entry & Exit Markers on Pane 1 + Signal Markers on RSI (Pane 3) & MACD (Pane 4)
+    # Plot Entry & Exit Markers on Pane 1 + Signal Markers on %B (Pane 2), RSI (Pane 3) & MACD (Pane 4)
     if trades_detail is not None and not trades_detail.empty:
         records = trades_detail.to_dict("records")
         entry_dates, entry_prices, entry_texts = [], [], []
         exit_dates, exit_prices, exit_colors, exit_texts = [], [], [], []
-        sig_dates, sig_rsi, sig_macd, sig_texts = [], [], [], []
+        sig_dates, sig_rsi, sig_macd, sig_pctb, sig_texts = [], [], [], [], []
 
         for idx_num, t in enumerate(records, start=1):
             sd = t.get("signal_date")
@@ -366,9 +326,10 @@ def create_equity_curve_chart(backtest_res: dict, ticker: str) -> str:
                 sig_dates.append(sd)
                 sig_rsi.append(float(s_row["RSI_14"]))
                 sig_macd.append(float(s_row["MACD_Hist"]))
+                sig_pctb.append(float(s_row["BB_PctB"]))
                 sig_texts.append(
-                    f"Trade #{idx_num} Sinyal BELI (Skor: {t.get('signal_strength', '-')}/100)<br>"
-                    f"RSI: {s_row['RSI_14']:.2f} | MACD Hist: {s_row['MACD_Hist']:.2f} | %B: {s_row['BB_PctB']:.2f}"
+                    f"Trade #{idx_num} Sinyal BELI (Pemicu: {t.get('buy_rules', '-')})<br>"
+                    f"RSI: {s_row['RSI_14']:.2f} | MACD Hist: {s_row['MACD_Hist']:.2f} | %B: {s_row['BB_PctB']:.4f}"
                 )
 
             ed = t.get("entry_date")
@@ -378,7 +339,7 @@ def create_equity_curve_chart(backtest_res: dict, ticker: str) -> str:
                 entry_texts.append(
                     f"Trade #{idx_num} — BELI (Open): Rp {t['entry']:,.0f}<br>"
                     f"Target TP: Rp {t['tp']:,.0f} | SL: Rp {t['sl']:,.0f}<br>"
-                    f"Skor Sinyal Centroid: {t.get('signal_strength', '-')}/100"
+                    f"Aturan pemicu: {t.get('buy_rules', '-')}"
                 )
 
             xd = t.get("exit_date")
@@ -431,18 +392,32 @@ def create_equity_curve_chart(backtest_res: dict, ticker: str) -> str:
             )
 
     # ==========================================================
-    # PANE 2: VOLUME & VOLUME SMA 20
+    # PANE 2: INDIKATOR %B + TITIK SINYAL BELI
     # ==========================================================
-    vol_colors = ["#22c55e" if c >= o else "#ef4444" for c, o in zip(daily_detail["Close"], daily_detail["Open"])]
-    fig.add_trace(
-        go.Bar(x=dates, y=daily_detail["Volume"], marker_color=vol_colors, name="Volume", showlegend=False),
-        row=2, col=1
-    )
-    if "Volume_SMA_20" in daily_detail.columns:
+    if "BB_PctB" in daily_detail.columns:
         fig.add_trace(
-            go.Scatter(x=dates, y=daily_detail["Volume_SMA_20"], line=dict(color="#a855f7", width=1.2), name="Vol SMA 20"),
+            go.Scatter(
+                x=dates, y=daily_detail["BB_PctB"],
+                line=dict(color="#38bdf8", width=1.5),
+                name="%B",
+                showlegend=True
+            ),
             row=2, col=1
         )
+        fig.add_hline(y=1.0, line_dash="dash", line_color="#ef4444", line_width=1, row=2, col=1)
+        fig.add_hline(y=0.5, line_dash="dot", line_color="#a855f7", line_width=1, row=2, col=1)
+        fig.add_hline(y=0.0, line_dash="dash", line_color="#22c55e", line_width=1, row=2, col=1)
+        fig.add_hrect(y0=0.0, y1=1.0, fillcolor="rgba(56, 189, 248, 0.04)", line_width=0, row=2, col=1)
+        if trades_detail is not None and not trades_detail.empty and sig_dates:
+            fig.add_trace(
+                go.Scatter(
+                    x=sig_dates, y=sig_pctb, mode="markers",
+                    marker=dict(symbol="circle", size=8, color="#38bdf8", line=dict(width=1, color="#ffffff")),
+                    text=sig_texts, hovertemplate="%{text}<extra>SINYAL BELI</extra>",
+                    name="Sinyal BELI pada %B", showlegend=False
+                ),
+                row=2, col=1
+            )
 
     # ==========================================================
     # PANE 3: RSI (14) + TITIK SINYAL BELI
@@ -571,7 +546,7 @@ def create_equity_curve_chart(backtest_res: dict, ticker: str) -> str:
         rangeslider_visible=False
     )
     fig.update_yaxes(title_text="Harga (IDR)", showgrid=True, gridcolor="#1e293b", gridwidth=0.5, linecolor="#334155", row=1, col=1)
-    fig.update_yaxes(title_text="Vol", showgrid=True, gridcolor="#1e293b", gridwidth=0.5, linecolor="#334155", row=2, col=1)
+    fig.update_yaxes(title_text="%B", showgrid=True, gridcolor="#1e293b", gridwidth=0.5, linecolor="#334155", row=2, col=1)
     fig.update_yaxes(title_text="RSI", range=[0, 100], showgrid=True, gridcolor="#1e293b", gridwidth=0.5, linecolor="#334155", row=3, col=1)
     fig.update_yaxes(title_text="MACD", showgrid=True, gridcolor="#1e293b", gridwidth=0.5, linecolor="#334155", row=4, col=1)
     fig.update_yaxes(title_text="ATR (IDR)", showgrid=True, gridcolor="#1e293b", gridwidth=0.5, linecolor="#334155", row=5, col=1)

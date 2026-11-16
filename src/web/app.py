@@ -17,7 +17,7 @@ for path in [ROOT_DIR, SRC_DIR]:
         sys.path.insert(0, path)
 
 from data_indicators_engineers import StockDataIndicatorEngineer
-from fuzzy_engine import infer
+from rule_engine import infer, attach_previous_inputs
 from signal_validation_backtest import backtest
 from .utils import (
     get_available_stocks,
@@ -70,13 +70,14 @@ def create_app():
                 if available_stocks and selected_ticker != available_stocks[0]:
                     return redirect(url_for("dashboard", ticker=available_stocks[0], period=period))
 
-        # Evaluasi inferensi fuzzy
+        # Evaluasi inferensi Rule-Based (butuh nilai indikator t-1 & t-2 untuk deteksi pemicu)
         inference_result = None
         if facts:
             try:
+                facts = attach_previous_inputs(facts, df)
                 inference_result = infer(facts)
             except Exception as e:
-                flash(f"Gagal memproses inferensi fuzzy: {str(e)}", "warning")
+                flash(f"Gagal memproses inferensi rule-based: {str(e)}", "warning")
 
         # Buat grafik Plotly Candlestick & Indikator
         chart_html = create_candlestick_chart(df, selected_ticker, period=period)

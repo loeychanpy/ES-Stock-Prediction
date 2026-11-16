@@ -65,7 +65,7 @@
         <div>
           <div class="d-flex justify-content-between align-items-center mb-3">
             <span class="text-uppercase text-muted small fw-bold tracking-wide">Rekomendasi Sistem Pakar</span>
-            <span class="badge bg-dark border border-secondary text-info small">Forward Chaining</span>
+            <span class="badge bg-dark border border-secondary text-info small">Rule-Based &bull; Forward Chaining</span>
           </div>
 
           <!-- Status Badge -->
@@ -83,23 +83,23 @@
             {% endif %}
           </div>
 
-          <!-- Signal Strength Score Meter -->
+          <!-- Status Evaluasi Aturan Beli -->
           <div class="mb-3">
             <div class="d-flex justify-content-between small mb-1">
-              <span class="text-muted">Kekuatan Sinyal Defuzzifikasi Centroid:</span>
-              <span class="fw-bold font-mono-num {% if inference and inference.signal_strength >= 70 %}text-success{% else %}text-warning{% endif %}">
-                {{ inference.signal_strength if inference else 0 }}/100
-              </span>
+              <span class="text-muted">Aturan Beli Terpicu (R1&ndash;R5):</span>
+              {% if inference and inference.buy_rules_fired %}
+                <span class="fw-bold font-mono-num text-success">{{ inference.buy_rules_fired | join(', ') }}</span>
+              {% else %}
+                <span class="fw-bold font-mono-num text-warning">TIDAK ADA</span>
+              {% endif %}
             </div>
-            <div class="progress progress-dark">
-              <div class="progress-bar {% if inference and inference.signal_strength >= 70 %}bg-success{% else %}bg-warning{% endif %}" 
-                   role="progressbar" 
-                   style="width: {{ inference.signal_strength if inference else 0 }}%;"></div>
-            </div>
-            <div class="d-flex justify-content-between text-muted" style="font-size: 0.65rem;">
-              <span>0 (Lemah)</span>
-              <span>Ambang Beli: &ge;70</span>
-              <span>100 (Kuat)</span>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted">Aturan Tahan Terpicu (R6&ndash;R10):</span>
+              {% if inference and inference.hold_rules_fired %}
+                <span class="fw-bold font-mono-num text-danger">{{ inference.hold_rules_fired | join(', ') }}</span>
+              {% else %}
+                <span class="fw-bold font-mono-num text-muted">TIDAK ADA</span>
+              {% endif %}
             </div>
           </div>
 
@@ -159,70 +159,77 @@
       </div>
     </div>
 
-    <!-- Kolom 2: Fakta Indikator & Nilai Fuzzy -->
+    <!-- Kolom 2: Fakta Indikator & Status Pemicu Rule-Based -->
     <div class="col-xl-8 col-lg-7">
       <div class="card-terminal h-100 p-3">
         <div class="card-header-terminal mb-3 px-0 pt-0">
-          <span><i class="bi bi-cpu me-2 text-info"></i>Fakta Nilai Indikator & Derajat Fuzzifikasi</span>
-          <span class="badge bg-dark border border-secondary text-muted">Input Fuzzy & Risiko</span>
+          <span><i class="bi bi-cpu me-2 text-info"></i>Fakta Nilai Indikator &amp; Status Pemicu (Rule-Based)</span>
+          <span class="badge bg-dark border border-secondary text-muted">3 Indikator (RSI, MACD, %B) &amp; Risiko ATR</span>
         </div>
 
+        {% set ev = inference.events if inference else None %}
         <div class="row g-3 mb-3">
           <!-- RSI 14 -->
-          <div class="col-md-3 col-6">
+          <div class="col-md-4 col-12">
             <div class="metric-box">
               <div class="metric-title">RSI (14)</div>
               <div class="metric-value font-mono-num text-warning">
-                {{ facts.fuzzy_inputs.rsi_14 if facts else '-' }}
+                {{ ev.rsi.value if ev else '-' }}
               </div>
-              <div class="small text-muted mt-1" style="font-size: 0.72rem;">
-                {% if inference and inference.fuzzified_inputs.rsi %}
-                  R: {{ inference.fuzzified_inputs.rsi.rendah }} &bull; S: {{ inference.fuzzified_inputs.rsi.sedang }} &bull; T: {{ inference.fuzzified_inputs.rsi.tinggi }}
+              <div class="small text-muted font-mono-num" style="font-size: 0.68rem;">
+                Kemarin: {{ ev.rsi.prev if ev and ev.rsi.prev is not none else '-' }}
+              </div>
+              <div class="small mt-1" style="font-size: 0.72rem;">
+                {% if ev and ev.rsi.touch_30_from_above %}
+                  <span class="text-success fw-semibold">{{ ev.rsi.status }}</span>
+                {% elif ev and ev.rsi.touch_70_from_below %}
+                  <span class="text-danger fw-semibold">{{ ev.rsi.status }}</span>
+                {% elif ev %}
+                  <span class="text-info fw-semibold">{{ ev.rsi.status }}</span>
                 {% endif %}
               </div>
             </div>
           </div>
 
           <!-- MACD Hist -->
-          <div class="col-md-3 col-6">
+          <div class="col-md-4 col-12">
             <div class="metric-box">
               <div class="metric-title">MACD Histogram</div>
-              <div class="metric-value font-mono-num {% if facts and facts.fuzzy_inputs.macd_hist >= 0 %}text-success{% else %}text-danger{% endif %}">
-                {{ facts.fuzzy_inputs.macd_hist if facts else '-' }}
+              <div class="metric-value font-mono-num {% if ev and ev.macd.value > 0 %}text-success{% else %}text-danger{% endif %}">
+                {{ ev.macd.value if ev else '-' }}
               </div>
-              <div class="small text-muted mt-1" style="font-size: 0.72rem;">
-                {% if inference and inference.fuzzified_inputs.macd %}
-                  Neg: {{ inference.fuzzified_inputs.macd.negatif }} &bull; Pos: {{ inference.fuzzified_inputs.macd.positif }}
+              <div class="small text-muted font-mono-num" style="font-size: 0.68rem;">
+                Kemarin: {{ ev.macd.prev if ev and ev.macd.prev is not none else '-' }}
+              </div>
+              <div class="small mt-1" style="font-size: 0.72rem;">
+                {% if ev and ev.macd.cross_up_zero %}
+                  <span class="text-success fw-semibold">{{ ev.macd.status }}</span>
+                {% elif ev and ev.macd.cross_down_zero %}
+                  <span class="text-danger fw-semibold">{{ ev.macd.status }}</span>
+                {% elif ev %}
+                  <span class="text-muted fw-semibold">{{ ev.macd.status }}</span>
                 {% endif %}
               </div>
             </div>
           </div>
 
-          <!-- Bollinger %B -->
-          <div class="col-md-3 col-6">
+          <!-- Indikator %B -->
+          <div class="col-md-4 col-12">
             <div class="metric-box">
-              <div class="metric-title">Bollinger %B</div>
+              <div class="metric-title">Indikator %B</div>
               <div class="metric-value font-mono-num text-info">
-                {{ facts.fuzzy_inputs.bb_pct_b if facts else '-' }}
+                {{ ev.bb.value if ev else '-' }}
               </div>
-              <div class="small text-muted mt-1" style="font-size: 0.72rem;">
-                {% if inference and inference.fuzzified_inputs.bb %}
-                  R: {{ inference.fuzzified_inputs.bb.rendah }} &bull; S: {{ inference.fuzzified_inputs.bb.sedang }} &bull; T: {{ inference.fuzzified_inputs.bb.tinggi }}
-                {% endif %}
+              <div class="small text-muted font-mono-num" style="font-size: 0.68rem;">
+                Kemarin: {{ ev.bb.prev if ev and ev.bb.prev is not none else '-' }}
               </div>
-            </div>
-          </div>
-
-          <!-- Volume Ratio -->
-          <div class="col-md-3 col-6">
-            <div class="metric-box">
-              <div class="metric-title">Volume Ratio</div>
-              <div class="metric-value font-mono-num text-light">
-                {{ facts.fuzzy_inputs.volume_ratio if facts else '-' }}x
-              </div>
-              <div class="small text-muted mt-1" style="font-size: 0.72rem;">
-                {% if inference and inference.fuzzified_inputs.volume %}
-                  R: {{ inference.fuzzified_inputs.volume.rendah }} &bull; N: {{ inference.fuzzified_inputs.volume.normal }} &bull; T: {{ inference.fuzzified_inputs.volume.tinggi }}
+              <div class="small mt-1" style="font-size: 0.72rem;">
+                {% if ev and (ev.bb.touch_0_from_above or ev.bb.cross_up_05 or ev.bb.bounce_up_05) %}
+                  <span class="text-success fw-semibold">{{ ev.bb.status }}</span>
+                {% elif ev and (ev.bb.touch_1_from_below or ev.bb.cross_down_05 or ev.bb.reject_down_05) %}
+                  <span class="text-danger fw-semibold">{{ ev.bb.status }}</span>
+                {% elif ev %}
+                  <span class="text-muted fw-semibold">{{ ev.bb.status }}</span>
                 {% endif %}
               </div>
             </div>
@@ -275,7 +282,7 @@
         <div class="p-3 rounded bg-dark border border-secondary">
           <div class="d-flex align-items-center mb-1">
             <i class="bi bi-chat-left-text-fill text-info me-2"></i>
-            <span class="fw-semibold text-light small text-uppercase">Narasi Penjelasan Sistem:</span>
+            <span class="fw-semibold text-light small text-uppercase">Penjelasan Penalaran Aturan (Rule-Based):</span>
           </div>
           <p class="mb-0 text-muted small lh-base">
             {{ inference.explanation if inference else 'Tidak ada data inferensi.' }}
@@ -292,7 +299,7 @@
     <div class="card-header-terminal px-3 py-2">
       <div class="d-flex align-items-center gap-2">
         <i class="bi bi-bar-chart-line-fill text-info"></i>
-        <span>Grafik Interaktif Candlestick & Indikator Teknikal (Plotly)</span>
+        <span>Grafik Interaktif Candlestick &amp; Indikator Teknikal (Plotly)</span>
       </div>
       <div class="text-muted small">
         <span class="badge bg-dark border border-secondary text-light">Rentang: {{ selected_period }}</span>
@@ -304,48 +311,51 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- RULE EXPLANATION PANEL (R1 - R4) -->
+  <!-- RULE EXPLANATION PANEL (R1 - R10) -->
   <!-- ========================================== -->
   <div class="card-terminal p-3">
     <div class="card-header-terminal px-0 pt-0 mb-3">
       <div class="d-flex align-items-center gap-2">
         <i class="bi bi-shield-check text-success"></i>
-        <span>Panel Evaluasi Basis Aturan (Knowledge Base R1 &ndash; R4)</span>
+        <span>Panel Evaluasi Basis Aturan IF&ndash;THEN (Knowledge Base R1 &ndash; R10)</span>
       </div>
-      <span class="text-muted small">Metode Inferensi: Mamdani (MIN-MAX-Centroid)</span>
+      <span class="text-muted small">Metode Inferensi: Pure Rule-Based (Forward Chaining) &bull; Pemicu = garis indikator disentuh/dilewati</span>
     </div>
+
+    {% if inference and not inference.signal_valid %}
+      <div class="alert alert-warning py-2 small mb-3">
+        Filter validasi Tahap 3 belum terpenuhi, sehingga keputusan akhir dipaksa TAHAN walaupun ada aturan yang terpicu.
+      </div>
+    {% endif %}
 
     <div class="row g-3">
       {% if inference and inference.all_rules %}
         {% for r in inference.all_rules %}
           <div class="col-md-6">
-            <div class="rule-item {% if r.consequent == 'kuat' and r.firing_strength > 0.1 %}active-strong{% elif r.consequent == 'sedang' and r.firing_strength > 0.1 %}active-medium{% elif r.consequent == 'lemah' and r.firing_strength > 0.1 %}active-weak{% endif %}">
+            <div class="rule-item {% if r.consequent == 'BELI' and r.fired %}active-strong{% elif r.consequent == 'TAHAN' and r.fired %}active-weak{% endif %}">
               <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="fw-bold font-mono-num text-info">{{ r.id }}</span>
-                <span class="badge {% if r.consequent == 'kuat' %}bg-success{% elif r.consequent == 'sedang' %}bg-info text-dark{% else %}bg-secondary{% endif %} text-uppercase" style="font-size: 0.65rem;">
-                  Konsekuen: {{ r.consequent }}
-                </span>
+                <span class="fw-bold font-mono-num text-info">{{ r.id }} <span class="text-muted small">({{ r.indicator }})</span></span>
+                <div>
+                  {% if r.fired %}
+                    <span class="badge bg-success text-white me-1" style="font-size: 0.65rem;">TERPICU (TRUE)</span>
+                  {% else %}
+                    <span class="badge bg-secondary bg-opacity-25 text-muted me-1" style="font-size: 0.65rem;">TIDAK TERPICU (FALSE)</span>
+                  {% endif %}
+                  <span class="badge {% if r.consequent == 'BELI' %}bg-success{% else %}bg-danger{% endif %} text-uppercase" style="font-size: 0.65rem;">
+                    Aksi: {{ r.consequent }}
+                  </span>
+                </div>
               </div>
-              <div class="small text-light font-mono-num mb-2" style="font-size: 0.8rem;">
+              <div class="small text-light font-mono-num mb-1" style="font-size: 0.8rem;">
                 {{ r.description }}
               </div>
-              <div class="d-flex justify-content-between align-items-center small text-muted">
-                <span>Firing Strength (&alpha;):</span>
-                <span class="font-mono-num fw-bold {% if r.firing_strength >= 0.5 %}text-success{% elif r.firing_strength > 0 %}text-info{% else %}text-secondary{% endif %}">
-                  {{ r.firing_strength }}
-                </span>
-              </div>
-              <div class="progress progress-dark mt-1" style="height: 5px;">
-                <div class="progress-bar {% if r.consequent == 'kuat' %}bg-success{% elif r.consequent == 'sedang' %}bg-info{% else %}bg-danger{% endif %}" 
-                     role="progressbar" 
-                     style="width: {{ r.firing_strength * 100 }}%;"></div>
-              </div>
+              <div class="small text-muted" style="font-size: 0.72rem;">{{ r.makna }}</div>
             </div>
           </div>
         {% endfor %}
       {% else %}
         <div class="col-12 text-center text-muted py-3">
-          Aturan fuzzy tidak dievaluasi karena sinyal pada tahap 3 belum memenuhi syarat (tidak dalam uptrend atau tidak dekat minimum lokal).
+          Tidak ada data inferensi.
         </div>
       {% endif %}
     </div>
@@ -387,7 +397,7 @@
           <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
           <button type="submit" id="btnSubmitFetch" class="btn btn-terminal btn-sm">
             <span id="fetchSpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status"></span>
-            Tarik & Proses Data
+            Tarik &amp; Proses Data
           </button>
         </div>
       </form>

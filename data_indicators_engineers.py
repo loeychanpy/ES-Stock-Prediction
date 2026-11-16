@@ -175,12 +175,23 @@ class StockDataIndicatorEngineer:
                 "close": float(latest['Close']),
                 "volume": int(latest['Volume'])
             },
-            "fuzzy_inputs": {
+            "indicator_inputs": {
                 "rsi_14": float(latest['RSI_14']),
                 "macd_hist": float(latest['MACD_Hist']),
-                "bb_pct_b": float(latest['BB_PctB']),
-                "volume_ratio": float(latest['Volume_Ratio'])
+                "bb_pct_b": float(latest['BB_PctB'])
             },
+            # Nilai hari sebelumnya (t-1, t-2): dibutuhkan untuk mendeteksi pemicu
+            # "menyentuh / melewati garis" pada RSI, MACD Histogram, dan %B.
+            "previous_inputs": {
+                "rsi_14": float(clean_df.iloc[-2]['RSI_14']),
+                "macd_hist": float(clean_df.iloc[-2]['MACD_Hist']),
+                "bb_pct_b": float(clean_df.iloc[-2]['BB_PctB'])
+            } if len(clean_df) >= 2 else {},
+            "previous2_inputs": {
+                "rsi_14": float(clean_df.iloc[-3]['RSI_14']),
+                "macd_hist": float(clean_df.iloc[-3]['MACD_Hist']),
+                "bb_pct_b": float(clean_df.iloc[-3]['BB_PctB'])
+            } if len(clean_df) >= 3 else {},
             "validation_filter": {
                 "sma_20": float(latest['SMA_20']),
                 "sma_50": float(latest['SMA_50']),

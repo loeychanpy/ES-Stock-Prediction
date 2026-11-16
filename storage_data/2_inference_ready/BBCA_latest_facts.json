@@ -3,8 +3,8 @@
         "ticker": "BBCA.JK",
         "code": "BBCA",
         "date": "2026-11-09",
-        "timestamp_update": "2026-11-09 14:30:39 WIB",
-        "status_data": "SEMENTARA (Intraday Delayed ~15m)",
+        "timestamp_update": "2026-11-09 22:34:41 WIB",
+        "status_data": "FINAL (EOD)",
         "source_csv_file": "storage_data\\2_inference_ready\\BBCA_clean_indicators.csv"
     },
     "price_volume": {
@@ -12,13 +12,13 @@
         "high": 5350.0,
         "low": 5250.0,
         "close": 5325.0,
-        "volume": 182851300
+        "volume": 281069100
     },
     "fuzzy_inputs": {
         "rsi_14": 48.4401,
         "macd_hist": 56.2992,
         "bb_pct_b": 0.5717,
-        "volume_ratio": 0.487
+        "volume_ratio": 0.7389
     },
     "validation_filter": {
         "sma_20": 5212.75,

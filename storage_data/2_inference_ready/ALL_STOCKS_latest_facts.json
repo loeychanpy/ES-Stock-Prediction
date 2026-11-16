@@ -4,8 +4,8 @@
             "ticker": "BBCA.JK",
             "code": "BBCA",
             "date": "2026-11-09",
-            "timestamp_update": "2026-11-09 14:30:39 WIB",
-            "status_data": "SEMENTARA (Intraday Delayed ~15m)",
+            "timestamp_update": "2026-11-09 22:34:41 WIB",
+            "status_data": "FINAL (EOD)",
             "source_csv_file": "storage_data\\2_inference_ready\\BBCA_clean_indicators.csv"
         },
         "price_volume": {
@@ -13,13 +13,13 @@
             "high": 5350.0,
             "low": 5250.0,
             "close": 5325.0,
-            "volume": 182851300
+            "volume": 281069100
         },
         "fuzzy_inputs": {
             "rsi_14": 48.4401,
             "macd_hist": 56.2992,
             "bb_pct_b": 0.5717,
-            "volume_ratio": 0.487
+            "volume_ratio": 0.7389
         },
         "validation_filter": {
             "sma_20": 5212.75,
@@ -40,26 +40,26 @@
             "ticker": "BBRI.JK",
             "code": "BBRI",
             "date": "2026-11-09",
-            "timestamp_update": "2026-11-09 14:30:40 WIB",
-            "status_data": "SEMENTARA (Intraday Delayed ~15m)",
+            "timestamp_update": "2026-11-09 22:34:42 WIB",
+            "status_data": "FINAL (EOD)",
             "source_csv_file": "storage_data\\2_inference_ready\\BBRI_clean_indicators.csv"
         },
         "price_volume": {
             "open": 2830.0,
             "high": 2850.0,
             "low": 2780.0,
-            "close": 2800.0,
-            "volume": 161517700
+            "close": 2820.0,
+            "volume": 219676000
         },
         "fuzzy_inputs": {
-            "rsi_14": 43.9916,
-            "macd_hist": 4.7241,
-            "bb_pct_b": 0.4421,
-            "volume_ratio": 0.4083
+            "rsi_14": 45.2161,
+            "macd_hist": 6.0005,
+            "bb_pct_b": 0.4739,
+            "volume_ratio": 0.5513
         },
         "validation_filter": {
-            "sma_20": 2834.5,
-            "sma_50": 3078.8,
+            "sma_20": 2835.5,
+            "sma_50": 3079.2,
             "is_uptrend": false,
             "local_min_n": 2650.0,
             "near_local_min": false,
@@ -67,8 +67,8 @@
         },
         "risk_management": {
             "atr_14": 117.4948,
-            "initial_sl_estimate": 2623.76,
-            "initial_tp_estimate": 3152.48
+            "initial_sl_estimate": 2643.76,
+            "initial_tp_estimate": 3172.48
         }
     },
     "TLKM": {
@@ -76,26 +76,26 @@
             "ticker": "TLKM.JK",
             "code": "TLKM",
             "date": "2026-11-09",
-            "timestamp_update": "2026-11-09 14:30:41 WIB",
-            "status_data": "SEMENTARA (Intraday Delayed ~15m)",
+            "timestamp_update": "2026-11-09 22:34:42 WIB",
+            "status_data": "FINAL (EOD)",
             "source_csv_file": "storage_data\\2_inference_ready\\TLKM_clean_indicators.csv"
         },
         "price_volume": {
             "open": 2020.0,
             "high": 2090.0,
             "low": 1980.0,
-            "close": 2070.0,
-            "volume": 126510200
+            "close": 2050.0,
+            "volume": 193182000
         },
         "fuzzy_inputs": {
-            "rsi_14": 46.824,
-            "macd_hist": 8.9204,
-            "bb_pct_b": 0.5176,
-            "volume_ratio": 0.361
+            "rsi_14": 45.5685,
+            "macd_hist": 7.644,
+            "bb_pct_b": 0.485,
+            "volume_ratio": 0.5461
         },
         "validation_filter": {
-            "sma_20": 2059.75,
-            "sma_50": 2309.1,
+            "sma_20": 2058.75,
+            "sma_50": 2308.7,
             "is_uptrend": false,
             "local_min_n": 1845.0,
             "near_local_min": false,
@@ -103,8 +103,8 @@
         },
         "risk_management": {
             "atr_14": 103.8786,
-            "initial_sl_estimate": 1914.18,
-            "initial_tp_estimate": 2381.64
+            "initial_sl_estimate": 1894.18,
+            "initial_tp_estimate": 2361.64
         }
     }
 }
