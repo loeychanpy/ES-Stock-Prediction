@@ -2,35 +2,44 @@
     "metadata": {
         "ticker": "TLKM.JK",
         "code": "TLKM",
-        "date": "2026-11-09",
-        "timestamp_update": "2026-11-09 22:34:42 WIB",
+        "date": "2026-11-16",
+        "timestamp_update": "2026-11-20 02:25:21 WIB",
         "status_data": "FINAL (EOD)",
-        "source_csv_file": "storage_data\\2_inference_ready\\TLKM_clean_indicators.csv"
+        "source_csv_file": "C:\\Users\\Pongo\\OneDrive\\Dokumen\\TUGAS SEM 5\\Expert System\\Code\\storage_data\\2_inference_ready\\TLKM_clean_indicators.csv"
     },
     "price_volume": {
-        "open": 2020.0,
-        "high": 2090.0,
-        "low": 1980.0,
-        "close": 2050.0,
-        "volume": 193182000
+        "open": 2140.0,
+        "high": 2170.0,
+        "low": 2120.0,
+        "close": 2150.0,
+        "volume": 69177400
     },
-    "fuzzy_inputs": {
-        "rsi_14": 45.5685,
-        "macd_hist": 7.644,
-        "bb_pct_b": 0.485,
-        "volume_ratio": 0.5461
+    "indicator_inputs": {
+        "rsi_14": 52.4746,
+        "macd_hist": 33.3347,
+        "bb_pct_b": 0.6954
+    },
+    "previous_inputs": {
+        "rsi_14": 53.2281,
+        "macd_hist": 31.1072,
+        "bb_pct_b": 0.7275
+    },
+    "previous2_inputs": {
+        "rsi_14": 51.2793,
+        "macd_hist": 25.0839,
+        "bb_pct_b": 0.6914
     },
     "validation_filter": {
-        "sma_20": 2058.75,
-        "sma_50": 2308.7,
+        "sma_20": 2066.25,
+        "sma_50": 2259.1,
         "is_uptrend": false,
-        "local_min_n": 1845.0,
+        "local_min_n": 1980.0,
         "near_local_min": false,
         "signal_valid": false
     },
     "risk_management": {
-        "atr_14": 103.8786,
-        "initial_sl_estimate": 1894.18,
-        "initial_tp_estimate": 2361.64
+        "atr_14": 92.7013,
+        "initial_sl_estimate": 2057.3,
+        "initial_tp_estimate": 2335.4
     }
 }

@@ -85,11 +85,11 @@ class StockDataIndicatorEngineer:
         data['SMA_20'] = data['Close'].rolling(window=20).mean()
         data['SMA_50'] = data['Close'].rolling(window=50).mean()
 
-        # 2. Volume & Rasio Volume (Input Fuzzy)
+        # 2. Volume & Rasio Volume (pendukung visual dashboard, tidak dipakai aturan pakar)
         data['Volume_SMA_20'] = data['Volume'].rolling(window=20).mean()
         data['Volume_Ratio'] = data['Volume'] / data['Volume_SMA_20']
 
-        # 3. RSI (14) - Wilder's Smoothing (Input Fuzzy)
+        # 3. RSI (14) - Wilder's Smoothing (input indikator pemicu R1/R2/R4/R5/R6)
         delta = data['Close'].diff()
         gain = delta.clip(lower=0)
         loss = -1 * delta.clip(upper=0)
@@ -99,14 +99,14 @@ class StockDataIndicatorEngineer:
         data['RSI_14'] = 100 - (100 / (1 + rs))
         data['RSI_14'] = data['RSI_14'].fillna(100)
 
-        # 4. MACD (12, 26, 9) & Histogram (Input Fuzzy)
+        # 4. MACD (12, 26, 9) & Histogram (input indikator pemicu R2/R7)
         ema_12 = data['Close'].ewm(span=12, adjust=False).mean()
         ema_26 = data['Close'].ewm(span=26, adjust=False).mean()
         data['MACD_Line'] = ema_12 - ema_26
         data['MACD_Signal'] = data['MACD_Line'].ewm(span=9, adjust=False).mean()
         data['MACD_Hist'] = data['MACD_Line'] - data['MACD_Signal']
 
-        # 5. Bollinger Bands (20, 2) & %B (Input Fuzzy)
+        # 5. Bollinger Bands (20, 2) & %B (input indikator pemicu R3/R4/R5/R8/R9/R10)
         bb_std = data['Close'].rolling(window=20).std()
         data['BB_Middle'] = data['SMA_20']
         data['BB_Upper'] = data['BB_Middle'] + (2 * bb_std)
@@ -122,8 +122,10 @@ class StockDataIndicatorEngineer:
         data['ATR_14'] = true_range.ewm(alpha=1/14, min_periods=14, adjust=False).mean()
 
         # 7. Filter Validasi Sinyal (Tahap 3: Tren Naik & Dekat Minimum Lokal NPMM)
+        # Local_Min_N memakai Low N hari SEBELUM hari ini (shift 1) supaya tidak look-ahead,
+        # konsisten dengan validate_signals() pada modul backtest.
         data['Is_Uptrend'] = data['SMA_20'] > data['SMA_50']
-        data['Local_Min_N'] = data['Low'].rolling(window=npmm_window).min()
+        data['Local_Min_N'] = data['Low'].rolling(window=npmm_window).min().shift(1)
         data['Near_Local_Min'] = (data['Close'] - data['Local_Min_N']) / data['Local_Min_N'] <= local_min_tol
         data['Signal_Valid'] = data['Is_Uptrend'] & data['Near_Local_Min']
 
@@ -202,8 +204,8 @@ class StockDataIndicatorEngineer:
             },
             "risk_management": {
                 "atr_14": float(latest['ATR_14']),
-                "initial_sl_estimate": round(float(latest['Close'] - 1.5 * latest['ATR_14']), 2),
-                "initial_tp_estimate": round(float(latest['Close'] + 3.0 * latest['ATR_14']), 2)
+                "initial_sl_estimate": round(float(latest['Close'] - 1.0 * latest['ATR_14']), 2),
+                "initial_tp_estimate": round(float(latest['Close'] + 2.0 * latest['ATR_14']), 2)
             }
         }
 

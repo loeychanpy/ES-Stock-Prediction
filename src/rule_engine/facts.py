@@ -15,7 +15,7 @@ def _inputs(row: pd.Series | None) -> dict:
 
 
 def build_facts(df: pd.DataFrame, pos: int, signal_valid: bool,
-                atr_tp_mult: float = 3.0, atr_sl_mult: float = 1.5) -> dict:
+                atr_tp_mult: float = 2.0, atr_sl_mult: float = 1.0) -> dict:
     """Bangun facts untuk baris ke-`pos` (posisi integer) pada df yang sudah terurut."""
     row = df.iloc[pos]
     prev = df.iloc[pos - 1] if pos >= 1 else None

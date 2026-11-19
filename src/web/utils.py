@@ -12,6 +12,7 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from .tradingview import render_tradingview_superchart
 
 # Setup paths
 SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -72,9 +73,10 @@ def filter_by_period(df: pd.DataFrame, period: str = "6M") -> pd.DataFrame:
     return filtered if not filtered.empty else df
 
 
-def create_candlestick_chart(df: pd.DataFrame, ticker: str, period: str = "6M") -> str:
+def create_candlestick_chart(df: pd.DataFrame, ticker: str, period: str = "6M", signals_df: pd.DataFrame = None) -> str:
     """
-    Membuat grafik interaktif 5-pane menggunakan Plotly Dark Mode:
+    Membuat komponen grafik TradingView Supercharts (Lightweight Charts) dengan
+    fallback Plotly Classic 5-pane:
     1. Candlestick (Solid Body) + SMA 20 + SMA 50
     2. Indikator %B + Garis Acuan 0.0, 0.5, dan 1.0
     3. RSI (14) + Batas Overbought (70) & Oversold (30)
@@ -234,7 +236,15 @@ def create_candlestick_chart(df: pd.DataFrame, ticker: str, period: str = "6M") 
     fig.update_yaxes(title_text="MACD", row=4, col=1)
     fig.update_yaxes(title_text="ATR (IDR)", row=5, col=1)
 
-    return fig.to_html(full_html=False, include_plotlyjs="cdn", config={"responsive": True, "displayModeBar": True})
+    plotly_html = fig.to_html(full_html=False, include_plotlyjs="cdn", config={"responsive": True, "displayModeBar": True})
+    return render_tradingview_superchart(
+        df=df,
+        ticker=ticker,
+        chart_id="tv_dashboard",
+        trades_df=signals_df,
+        is_backtest=False,
+        plotly_fallback_html=plotly_html
+    )
 
 
 def create_equity_curve_chart(backtest_res: dict, ticker: str) -> str:
@@ -552,4 +562,12 @@ def create_equity_curve_chart(backtest_res: dict, ticker: str) -> str:
     fig.update_yaxes(title_text="ATR (IDR)", showgrid=True, gridcolor="#1e293b", gridwidth=0.5, linecolor="#334155", row=5, col=1)
     fig.update_yaxes(title_text="Modal (1.0)", showgrid=True, gridcolor="#1e293b", gridwidth=0.5, linecolor="#334155", row=6, col=1)
 
-    return fig.to_html(full_html=False, include_plotlyjs="cdn", config={"responsive": True, "displayModeBar": True})
+    plotly_html = fig.to_html(full_html=False, include_plotlyjs="cdn", config={"responsive": True, "displayModeBar": True})
+    return render_tradingview_superchart(
+        df=daily_detail,
+        ticker=ticker,
+        chart_id="tv_backtest",
+        trades_df=trades_detail,
+        is_backtest=True,
+        plotly_fallback_html=plotly_html
+    )

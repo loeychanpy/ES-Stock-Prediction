@@ -3,108 +3,135 @@
         "metadata": {
             "ticker": "BBCA.JK",
             "code": "BBCA",
-            "date": "2026-11-09",
-            "timestamp_update": "2026-11-09 22:34:41 WIB",
+            "date": "2026-11-16",
+            "timestamp_update": "2026-11-20 02:25:21 WIB",
             "status_data": "FINAL (EOD)",
-            "source_csv_file": "storage_data\\2_inference_ready\\BBCA_clean_indicators.csv"
+            "source_csv_file": "C:\\Users\\Pongo\\OneDrive\\Dokumen\\TUGAS SEM 5\\Expert System\\Code\\storage_data\\2_inference_ready\\BBCA_clean_indicators.csv"
         },
         "price_volume": {
-            "open": 5300.0,
-            "high": 5350.0,
-            "low": 5250.0,
-            "close": 5325.0,
-            "volume": 281069100
+            "open": 5500.0,
+            "high": 5525.0,
+            "low": 5425.0,
+            "close": 5475.0,
+            "volume": 74752000
         },
-        "fuzzy_inputs": {
-            "rsi_14": 48.4401,
-            "macd_hist": 56.2992,
-            "bb_pct_b": 0.5717,
-            "volume_ratio": 0.7389
+        "indicator_inputs": {
+            "rsi_14": 52.726,
+            "macd_hist": 94.67,
+            "bb_pct_b": 0.8795
+        },
+        "previous_inputs": {
+            "rsi_14": 53.5719,
+            "macd_hist": 95.1607,
+            "bb_pct_b": 0.9506
+        },
+        "previous2_inputs": {
+            "rsi_14": 52.8698,
+            "macd_hist": 88.2786,
+            "bb_pct_b": 0.9844
         },
         "validation_filter": {
-            "sma_20": 5212.75,
-            "sma_50": 5870.6,
+            "sma_20": 5159.25,
+            "sma_50": 5744.6,
             "is_uptrend": false,
-            "local_min_n": 4820.0,
+            "local_min_n": 5250.0,
             "near_local_min": false,
             "signal_valid": false
         },
         "risk_management": {
-            "atr_14": 207.4682,
-            "initial_sl_estimate": 5013.8,
-            "initial_tp_estimate": 5947.4
+            "atr_14": 189.9692,
+            "initial_sl_estimate": 5285.03,
+            "initial_tp_estimate": 5854.94
         }
     },
     "BBRI": {
         "metadata": {
             "ticker": "BBRI.JK",
             "code": "BBRI",
-            "date": "2026-11-09",
-            "timestamp_update": "2026-11-09 22:34:42 WIB",
+            "date": "2026-11-16",
+            "timestamp_update": "2026-11-20 02:25:21 WIB",
             "status_data": "FINAL (EOD)",
-            "source_csv_file": "storage_data\\2_inference_ready\\BBRI_clean_indicators.csv"
+            "source_csv_file": "C:\\Users\\Pongo\\OneDrive\\Dokumen\\TUGAS SEM 5\\Expert System\\Code\\storage_data\\2_inference_ready\\BBRI_clean_indicators.csv"
         },
         "price_volume": {
-            "open": 2830.0,
-            "high": 2850.0,
-            "low": 2780.0,
-            "close": 2820.0,
-            "volume": 219676000
+            "open": 3060.0,
+            "high": 3090.0,
+            "low": 3030.0,
+            "close": 3060.0,
+            "volume": 126840500
         },
-        "fuzzy_inputs": {
-            "rsi_14": 45.2161,
-            "macd_hist": 6.0005,
-            "bb_pct_b": 0.4739,
-            "volume_ratio": 0.5513
+        "indicator_inputs": {
+            "rsi_14": 59.9007,
+            "macd_hist": 45.3859,
+            "bb_pct_b": 0.9646
+        },
+        "previous_inputs": {
+            "rsi_14": 59.9007,
+            "macd_hist": 40.6929,
+            "bb_pct_b": 0.9807
+        },
+        "previous2_inputs": {
+            "rsi_14": 58.3961,
+            "macd_hist": 30.7354,
+            "bb_pct_b": 0.9863
         },
         "validation_filter": {
-            "sma_20": 2835.5,
-            "sma_50": 3079.2,
+            "sma_20": 2854.5,
+            "sma_50": 3037.0,
             "is_uptrend": false,
-            "local_min_n": 2650.0,
+            "local_min_n": 2780.0,
             "near_local_min": false,
             "signal_valid": false
         },
         "risk_management": {
-            "atr_14": 117.4948,
-            "initial_sl_estimate": 2643.76,
-            "initial_tp_estimate": 3172.48
+            "atr_14": 109.1705,
+            "initial_sl_estimate": 2950.83,
+            "initial_tp_estimate": 3278.34
         }
     },
     "TLKM": {
         "metadata": {
             "ticker": "TLKM.JK",
             "code": "TLKM",
-            "date": "2026-11-09",
-            "timestamp_update": "2026-11-09 22:34:42 WIB",
+            "date": "2026-11-16",
+            "timestamp_update": "2026-11-20 02:25:21 WIB",
             "status_data": "FINAL (EOD)",
-            "source_csv_file": "storage_data\\2_inference_ready\\TLKM_clean_indicators.csv"
+            "source_csv_file": "C:\\Users\\Pongo\\OneDrive\\Dokumen\\TUGAS SEM 5\\Expert System\\Code\\storage_data\\2_inference_ready\\TLKM_clean_indicators.csv"
         },
         "price_volume": {
-            "open": 2020.0,
-            "high": 2090.0,
-            "low": 1980.0,
-            "close": 2050.0,
-            "volume": 193182000
+            "open": 2140.0,
+            "high": 2170.0,
+            "low": 2120.0,
+            "close": 2150.0,
+            "volume": 69177400
         },
-        "fuzzy_inputs": {
-            "rsi_14": 45.5685,
-            "macd_hist": 7.644,
-            "bb_pct_b": 0.485,
-            "volume_ratio": 0.5461
+        "indicator_inputs": {
+            "rsi_14": 52.4746,
+            "macd_hist": 33.3347,
+            "bb_pct_b": 0.6954
+        },
+        "previous_inputs": {
+            "rsi_14": 53.2281,
+            "macd_hist": 31.1072,
+            "bb_pct_b": 0.7275
+        },
+        "previous2_inputs": {
+            "rsi_14": 51.2793,
+            "macd_hist": 25.0839,
+            "bb_pct_b": 0.6914
         },
         "validation_filter": {
-            "sma_20": 2058.75,
-            "sma_50": 2308.7,
+            "sma_20": 2066.25,
+            "sma_50": 2259.1,
             "is_uptrend": false,
-            "local_min_n": 1845.0,
+            "local_min_n": 1980.0,
             "near_local_min": false,
             "signal_valid": false
         },
         "risk_management": {
-            "atr_14": 103.8786,
-            "initial_sl_estimate": 1894.18,
-            "initial_tp_estimate": 2361.64
+            "atr_14": 92.7013,
+            "initial_sl_estimate": 2057.3,
+            "initial_tp_estimate": 2335.4
         }
     }
 }

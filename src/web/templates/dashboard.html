@@ -6,53 +6,94 @@
 <div class="container-fluid px-lg-4 py-3">
 
   <!-- ========================================== -->
-  <!-- TOP CONTROL & TICKER SELECTOR BAR -->
+  <!-- PARAMETER CONFIGURATION FORM (DASHBOARD)   -->
   <!-- ========================================== -->
   <div class="card-terminal p-3 mb-3">
-    <div class="row align-items-center gy-3">
-      <!-- Stock Selector Form -->
-      <div class="col-lg-5 col-md-6">
-        <form action="{{ url_for('dashboard') }}" method="GET" class="d-flex align-items-center gap-2">
-          <label class="text-muted small text-uppercase fw-semibold mb-0" style="min-width: 65px;">Saham:</label>
-          <select name="ticker" class="form-select form-select-terminal" onchange="this.form.submit()">
+    <div class="card-header-terminal px-0 pt-0 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-sliders text-info fs-5"></i>
+        <span class="fw-bold">Konfigurasi Parameter Analisis &amp; Pemicu Sinyal (Rule-Based)</span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        {% if df_info %}
+          <span class="badge bg-dark border border-secondary font-mono-num text-white">
+            Terakhir: Rp {{ df_info.latest_close }}
+            <span class="{% if df_info.is_positive %}text-success{% else %}text-danger{% endif %} ms-1">
+              ({{ df_info.change_pct }})
+            </span>
+          </span>
+        {% endif %}
+        <button type="button" class="btn btn-outline-info btn-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalAddStock" title="Tarik Saham Baru dari BEI">
+          <i class="bi bi-plus-circle me-1"></i> Saham Baru
+        </button>
+      </div>
+    </div>
+
+    <form action="{{ url_for('dashboard') }}" method="POST">
+      <div class="row g-3 align-items-end">
+        <!-- Stock -->
+        <div class="col-lg-3 col-md-4">
+          <label class="form-label text-muted small text-uppercase fw-semibold">Pilih Saham:</label>
+          <select name="ticker" class="form-select form-select-terminal">
             {% for s in stocks %}
               <option value="{{ s }}" {% if s == selected_ticker %}selected{% endif %}>{{ s }} (IDX)</option>
             {% endfor %}
           </select>
-          <input type="hidden" name="period" value="{{ selected_period }}">
-          <button type="button" class="btn btn-outline-info btn-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalAddStock" title="Tarik Saham Baru dari BEI">
-            <i class="bi bi-plus-circle me-1"></i> Saham Baru
-          </button>
-        </form>
-      </div>
+        </div>
 
-      <!-- Timeframe Period Selector Pills -->
-      <div class="col-lg-4 col-md-6 text-md-center">
-        <div class="btn-group btn-group-sm" role="group">
-          {% for p in ['3M', '6M', '1Y', '3Y', 'ALL'] %}
-            <a href="{{ url_for('dashboard', ticker=selected_ticker, period=p) }}" 
-               class="btn {% if selected_period == p %}btn-info text-dark fw-bold{% else %}btn-outline-secondary text-light{% endif %}">
-              {{ p }}
-            </a>
-          {% endfor %}
+        <!-- N-Days Low -->
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label text-muted small text-uppercase fw-semibold" title="Rentang hari minimum lokal sebelumnya">
+            N-Hari Min Low:
+          </label>
+          <div class="input-group input-group-sm">
+            <input type="number" name="n_days" class="form-control form-control-terminal font-mono-num" value="{{ params.n_days }}" min="2" max="60" required>
+            <span class="input-group-text bg-dark border-secondary text-muted">hari</span>
+          </div>
+        </div>
+
+        <!-- Near Local Min % -->
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label text-muted small text-uppercase fw-semibold" title="Toleransi kedekatan harga dengan titik terendah">
+            Toleransi Min:
+          </label>
+          <div class="input-group input-group-sm">
+            <input type="number" step="0.5" name="near_pct" class="form-control form-control-terminal font-mono-num" value="{{ params.near_pct }}" min="0.5" max="10.0" required>
+            <span class="input-group-text bg-dark border-secondary text-muted">%</span>
+          </div>
+        </div>
+
+        <!-- ATR TP Mult -->
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label text-muted small text-uppercase fw-semibold" title="Pengali ATR untuk Take Profit">
+            Take Profit (TP):
+          </label>
+          <div class="input-group input-group-sm">
+            <input type="number" step="0.5" name="tp_mult" class="form-control form-control-terminal font-mono-num" value="{{ params.tp_mult }}" min="1.0" max="6.0" required>
+            <span class="input-group-text bg-dark border-secondary text-muted">&times; ATR</span>
+          </div>
+        </div>
+
+        <!-- ATR SL Mult -->
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label text-muted small text-uppercase fw-semibold" title="Pengali ATR untuk Stop Loss">
+            Stop Loss (SL):
+          </label>
+          <div class="input-group input-group-sm">
+            <input type="number" step="0.25" name="sl_mult" class="form-control form-control-terminal font-mono-num" value="{{ params.sl_mult }}" min="0.5" max="4.0" required>
+            <span class="input-group-text bg-dark border-secondary text-muted">&times; ATR</span>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="col-lg-1 col-md-4 col-12 text-end">
+          <button type="submit" class="btn btn-terminal w-100 btn-sm">
+            <i class="bi bi-play-fill me-1"></i> Jalankan
+          </button>
         </div>
       </div>
-
-      <!-- Quick Price Info -->
-      <div class="col-lg-3 col-12 text-lg-end text-start">
-        {% if df_info %}
-          <div class="d-inline-block text-lg-end">
-            <div class="d-flex align-items-baseline justify-content-lg-end gap-2">
-              <span class="fs-4 fw-bold font-mono-num text-white">Rp {{ df_info.latest_close }}</span>
-              <span class="badge {% if df_info.is_positive %}bg-success text-white{% else %}bg-danger text-white{% endif %} font-mono-num">
-                {{ df_info.change }} ({{ df_info.change_pct }})
-              </span>
-            </div>
-            <div class="text-muted small">Update: {{ df_info.latest_date }} &bull; {{ df_info.total_bars }} bars</div>
-          </div>
-        {% endif %}
-      </div>
-    </div>
+      <input type="hidden" name="period" value="{{ selected_period }}">
+    </form>
   </div>
 
   <!-- ========================================== -->
@@ -109,15 +150,15 @@
             <div class="row g-2">
               <div class="col-6">
                 <span class="text-muted">Tren Naik (SMA20>50):</span>
-                {% if facts and facts.validation_filter.is_uptrend %}
+                {% if facts and facts.validation_filter.trend_valid %}
                   <span class="badge bg-success-subtle text-success ms-1"><i class="bi bi-check-lg"></i> Valid</span>
                 {% else %}
                   <span class="badge bg-danger-subtle text-danger ms-1"><i class="bi bi-x-lg"></i> Gagal</span>
                 {% endif %}
               </div>
               <div class="col-6">
-                <span class="text-muted">Min Lokal (&le;3%):</span>
-                {% if facts and facts.validation_filter.near_local_min %}
+                <span class="text-muted">Min Lokal (&le;{{ params.near_pct }}%):</span>
+                {% if facts and facts.validation_filter.local_min_valid %}
                   <span class="badge bg-success-subtle text-success ms-1"><i class="bi bi-check-lg"></i> Valid</span>
                 {% else %}
                   <span class="badge bg-danger-subtle text-danger ms-1"><i class="bi bi-x-lg"></i> Gagal</span>
@@ -140,7 +181,7 @@
             </div>
             <div class="col-4">
               <div class="metric-box py-2" style="border-color: rgba(34, 197, 94, 0.4);">
-                <div class="metric-title text-success" style="font-size: 0.65rem;">Target TP (+3 ATR)</div>
+                <div class="metric-title text-success" style="font-size: 0.65rem;">Target TP (+{{ params.tp_mult }}&times;ATR)</div>
                 <div class="font-mono-num fw-bold fs-6 text-success">
                   {{ inference.tp if inference and inference.tp else '-' }}
                 </div>
@@ -148,7 +189,7 @@
             </div>
             <div class="col-4">
               <div class="metric-box py-2" style="border-color: rgba(239, 68, 68, 0.4);">
-                <div class="metric-title text-danger" style="font-size: 0.65rem;">Stop Loss (-1.5 ATR)</div>
+                <div class="metric-title text-danger" style="font-size: 0.65rem;">Stop Loss (-{{ params.sl_mult }}&times;ATR)</div>
                 <div class="font-mono-num fw-bold fs-6 text-danger">
                   {{ inference.sl if inference and inference.sl else '-' }}
                 </div>
@@ -246,7 +287,7 @@
                 Rp {{ "{:,.2f}".format(facts.risk_management.atr_14) if facts and facts.risk_management else '-' }}
               </div>
               <div class="small text-muted mt-1" style="font-size: 0.70rem;">
-                Acuan TP (+3&times;ATR) &amp; SL (-1.5&times;ATR)
+                TP (+{{ params.tp_mult }}&times;ATR): Rp {{ "{:,.0f}".format(facts.risk_management.initial_tp_estimate).replace(',', '.') if facts and facts.risk_management else '-' }} &bull; SL (-{{ params.sl_mult }}&times;ATR): Rp {{ "{:,.0f}".format(facts.risk_management.initial_sl_estimate).replace(',', '.') if facts and facts.risk_management else '-' }}
               </div>
             </div>
           </div>
@@ -267,12 +308,12 @@
           <!-- Local Min N (NPMM) -->
           <div class="col-md-4 col-12">
             <div class="metric-box py-2">
-              <div class="metric-title">Minimum Lokal (NPMM)</div>
+              <div class="metric-title">Minimum Lokal (NPMM {{ params.n_days }} Hari)</div>
               <div class="font-mono-num fw-bold fs-6 text-info">
                 Rp {{ "{:,.0f}".format(facts.validation_filter.local_min_n).replace(',', '.') if facts and facts.validation_filter else '-' }}
               </div>
               <div class="small text-muted mt-1" style="font-size: 0.70rem;">
-                Toleransi Maks (+3%): Rp {{ "{:,.0f}".format(facts.validation_filter.local_min_n * 1.03).replace(',', '.') if facts and facts.validation_filter else '-' }}
+                Toleransi Maks (+{{ params.near_pct }}%): Rp {{ "{:,.0f}".format(facts.validation_filter.local_min_n * (1 + params.near_pct / 100.0)).replace(',', '.') if facts and facts.validation_filter else '-' }}
               </div>
             </div>
           </div>
@@ -308,6 +349,77 @@
     <div class="p-2">
       {{ chart_html | safe }}
     </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- TRACK RECORD SINYAL TERPICU (TRIGGER HISTORY) -->
+  <!-- ========================================== -->
+  <div class="card-terminal p-3 mb-3">
+    <div class="card-header-terminal px-0 pt-0 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-clock-history text-info fs-5"></i>
+        <span class="fw-bold">Track Record Sinyal Terpicu (Trigger History) &mdash; {{ selected_ticker }}</span>
+        <span class="badge bg-success text-white ms-2">
+          {{ history_signals | length }} Sinyal Beli Terpicu
+        </span>
+      </div>
+      <span class="badge bg-dark border border-secondary text-muted">
+        Filter NPMM: {{ params.n_days }} Hari &bull; Toleransi: {{ params.near_pct }}% &bull; TP: {{ params.tp_mult }}&times;ATR &bull; SL: {{ params.sl_mult }}&times;ATR
+      </span>
+    </div>
+
+    {% if history_signals %}
+      <div class="table-responsive" style="max-height: 420px; overflow-y: auto;">
+        <table class="table table-dark table-hover table-sm align-middle mb-0 font-mono-num" style="font-size: 0.8rem;">
+          <thead class="table-dark sticky-top text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.05em; background-color: #111827;">
+            <tr>
+              <th scope="col" class="text-center" style="width: 45px;">#</th>
+              <th scope="col">Tanggal</th>
+              <th scope="col" class="text-end">Harga Close</th>
+              <th scope="col">Aturan Terpicu</th>
+              <th scope="col" class="text-end">RSI (14)</th>
+              <th scope="col" class="text-end">MACD Hist</th>
+              <th scope="col" class="text-end">%B</th>
+              <th scope="col" class="text-end">ATR (14)</th>
+              <th scope="col" class="text-end text-success">Target TP (+{{ params.tp_mult }}&times;)</th>
+              <th scope="col" class="text-end text-danger">Target SL (-{{ params.sl_mult }}&times;)</th>
+              <th scope="col" class="text-center">Jarak thd Low {{ params.n_days }}H</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in history_signals %}
+              <tr>
+                <td class="text-center text-muted">{{ s.idx }}</td>
+                <td class="text-white fw-bold">{{ s.date_str }}</td>
+                <td class="text-end text-white">Rp {{ "{:,.0f}".format(s.close).replace(',', '.') }}</td>
+                <td>
+                  {% for r in s.rules_list %}
+                    <span class="badge bg-primary text-white me-1">{{ r }}</span>
+                  {% endfor %}
+                </td>
+                <td class="text-end text-warning">{{ s.rsi }}</td>
+                <td class="text-end {% if s.macd_h >= 0 %}text-success{% else %}text-danger{% endif %}">{{ s.macd_h }}</td>
+                <td class="text-end text-info">{{ s.pctb }}</td>
+                <td class="text-end text-muted">Rp {{ "{:,.0f}".format(s.atr).replace(',', '.') }}</td>
+                <td class="text-end text-success fw-bold">Rp {{ "{:,.0f}".format(s.tp).replace(',', '.') }}</td>
+                <td class="text-end text-danger fw-bold">Rp {{ "{:,.0f}".format(s.sl).replace(',', '.') }}</td>
+                <td class="text-center">
+                  {% set dist = s.dist_pct %}
+                  <span class="badge bg-dark border border-secondary {% if dist >= 0 %}text-info{% else %}text-warning{% endif %}"
+                        title="Close vs Low {{ params.n_days }} hari sebelumnya = Rp {{ '{:,.0f}'.format(s.prior_low).replace(',', '.') }}">
+                    {% if dist >= 0 %}+{% endif %}{{ dist }}%
+                  </span>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="alert alert-dark border border-secondary text-center py-3 mb-0 text-muted">
+        <i class="bi bi-info-circle me-1 text-info"></i> Tidak ada sinyal BELI yang terpicu dalam riwayat data dengan kombinasi parameter saat ini (N-Hari: {{ params.n_days }}, Toleransi: {{ params.near_pct }}%).
+      </div>
+    {% endif %}
   </div>
 
   <!-- ========================================== -->

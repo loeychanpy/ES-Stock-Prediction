@@ -144,7 +144,7 @@ def _metrics(returns: list[float], equity_values: list[float], trades: list[dict
 
 
 def backtest(df: pd.DataFrame, n_days: int = 5, near_pct: float = 0.03,
-             atr_tp_mult: float = 3.0, atr_sl_mult: float = 1.5,
+             atr_tp_mult: float = 2.0, atr_sl_mult: float = 1.0,
              buy_fee: float = BUY_FEE, sell_fee: float = SELL_FEE,
              start_date: str | None = None, end_date: str | None = None) -> dict:
     """Long-only, one position at a time; TP/SL tested against daily OHLC.
