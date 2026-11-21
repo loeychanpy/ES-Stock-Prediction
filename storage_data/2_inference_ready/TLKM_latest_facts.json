@@ -2,44 +2,44 @@
     "metadata": {
         "ticker": "TLKM.JK",
         "code": "TLKM",
-        "date": "2026-11-16",
-        "timestamp_update": "2026-11-20 02:25:21 WIB",
+        "date": "2026-11-20",
+        "timestamp_update": "2026-11-21 11:48:32 WIB",
         "status_data": "FINAL (EOD)",
         "source_csv_file": "C:\\Users\\Pongo\\OneDrive\\Dokumen\\TUGAS SEM 5\\Expert System\\Code\\storage_data\\2_inference_ready\\TLKM_clean_indicators.csv"
     },
     "price_volume": {
-        "open": 2140.0,
-        "high": 2170.0,
-        "low": 2120.0,
-        "close": 2150.0,
-        "volume": 69177400
+        "open": 2080.0,
+        "high": 2090.0,
+        "low": 2010.0,
+        "close": 2070.0,
+        "volume": 205864800
     },
     "indicator_inputs": {
-        "rsi_14": 52.4746,
-        "macd_hist": 33.3347,
-        "bb_pct_b": 0.6954
+        "rsi_14": 45.6452,
+        "macd_hist": 22.1975,
+        "bb_pct_b": 0.5179
     },
     "previous_inputs": {
-        "rsi_14": 53.2281,
-        "macd_hist": 31.1072,
-        "bb_pct_b": 0.7275
+        "rsi_14": 49.5373,
+        "macd_hist": 29.4924,
+        "bb_pct_b": 0.6119
     },
     "previous2_inputs": {
-        "rsi_14": 51.2793,
-        "macd_hist": 25.0839,
-        "bb_pct_b": 0.6914
+        "rsi_14": 52.0081,
+        "macd_hist": 34.231,
+        "bb_pct_b": 0.6665
     },
     "validation_filter": {
-        "sma_20": 2066.25,
-        "sma_50": 2259.1,
+        "sma_20": 2062.75,
+        "sma_50": 2219.3,
         "is_uptrend": false,
-        "local_min_n": 1980.0,
-        "near_local_min": false,
+        "local_min_n": 2080.0,
+        "near_local_min": true,
         "signal_valid": false
     },
     "risk_management": {
-        "atr_14": 92.7013,
-        "initial_sl_estimate": 2057.3,
-        "initial_tp_estimate": 2335.4
+        "atr_14": 93.2164,
+        "initial_sl_estimate": 1976.78,
+        "initial_tp_estimate": 2256.43
     }
 }

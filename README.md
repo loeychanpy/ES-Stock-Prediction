@@ -109,9 +109,9 @@ Inferensi menggunakan **Forward Chaining** berbasis pencocokan fakta (*pattern m
 
 Meskipun aturan teknikal terpicu, sinyal beli hanya dieksekusi jika lolos **Filter Validasi Tahap 3** untuk menjamin prinsip *Buy Low in Uptrend*:
 1. **Filter Tren (Uptrend Valid)**: $\text{SMA}_{20} > \text{SMA}_{50}$ (hanya bertransaksi searah tren makro).
-2. **Filter Minimum Lokal (NPMM Proximity)**: Harga penutupan hari ini harus berada dekat dengan harga terendah ($N$-hari, default: 5 hari, konfigurabel 2–60 hari) dengan toleransi $\le 3\%$ (default: 3.0%, konfigurabel 0.5%–10.0%):
-   $$\text{Close}_t \le \text{Prior N-Day Low} \times (1 + \text{near\_pct})$$
-   Jika harga sudah naik terlalu jauh ($> 3\%$) dari titik terendah $N$-hari terakhir, sinyal ditolak agar terhindar dari pembelian di pucuk ayunan (*swing peak*).
+2. **Filter Minimum Lokal (NPMM Proximity)**: Harga penutupan hari ini harus berada **dekat** dengan harga terendah ($N$-hari, default: 5 hari, konfigurabel 2–60 hari), diukur **dua arah** dengan toleransi $\pm 3\%$ (default: 3.0%, konfigurabel 0.5%–10.0%):
+   $$\left| \text{Close}_t - \text{Prior N-Day Low} \right| \le \text{Prior N-Day Low} \times \text{near\_pct}$$
+   Alasan dua arah: harga yang sudah naik terlalu jauh ($> +3\%$) berarti mengejar di pucuk ayunan (*swing peak*), sedangkan harga yang jatuh terlalu dalam ($< -3\%$) berarti level support $N$-hari sudah gagal menahan harga — keduanya bukan lagi "dekat minimum". Tembusan kecil ($-3\% \le \text{jarak} < 0$) justru dianggap *undercut* / *false breakdown* yang lazim menjadi titik pantulan.
 
 ---
 
@@ -129,6 +129,11 @@ Mengambil data 3 tahun terakhir dari Yahoo Finance untuk saham acuan (BBCA, BBRI
 python data_indicators_engineers.py
 ```
 *Output tersimpan di: `storage_data/2_inference_ready/`*
+
+> Saat web app dijalankan (`run_web.py`), pembaruan data dilakukan otomatis oleh
+> *background updater* di dalam proses web, jadi script ini tidak perlu dijalankan
+> terpisah. Script tetap berguna untuk pengisian data awal (*backfill*) atau
+> finalisasi manual.
 
 ### 3. Eksekusi Inferensi Sinyal Harian (EOD)
 Menjalankan inferensi pakar pada data snapshot terakhir:
@@ -163,8 +168,24 @@ Aplikasi antarmuka pengguna berbasis Flask, TradingView Supercharts & Plotly Dar
 python run_web.py
 # Atau dengan opsi port:
 python run_web.py --port 5000
+
+# Ubah interval auto-fetch menjadi 5 menit:
+python run_web.py --interval 5
+
+# Matikan updater latar belakang:
+python run_web.py --no-auto-update
 ```
 Buka browser di: **`http://127.0.0.1:5000`**
+
+#### Update otomatis & status pasar (tanpa refresh manual)
+* **Status sesi bursa langsung** di bilah atas setiap halaman: `PRA-PEMBUKAAN`, `SESI 1`, `ISTIRAHAT`, `SESI 2`, `PASCA-PENUTUPAN`, `TUTUP`, atau `AKHIR PEKAN`, lengkap dengan jam WIB dan hitungan mundur ke event berikutnya.
+* **Background updater** di dalam proses web mengunduh candle terbaru dari Yahoo Finance setiap **15 menit** selama sesi bursa, lalu menulis ulang CSV/JSON secara atomik (pembaca tidak pernah melihat file setengah jadi).
+* **Finalisasi EOD otomatis** pukul **16:30 WIB** (status data berubah dari *SEMENTARA* menjadi *FINAL (EOD)*).
+* **Halaman memuat ulang sendiri** ketika data berubah: JavaScript memantau `/api/status` tiap 15 detik dan membandingkan `data.version`; jika berubah, halaman di-reload dengan parameter (ticker, N-hari, toleransi, TP/SL) tetap sama. Tidak perlu menekan F5.
+* **Tombol Perbarui** di bilah status memaksa unduhan saat itu juga (berguna di luar jam bursa).
+* Reload otomatis ditunda bila pengguna sedang mengisi form atau membuka modal, agar input tidak hilang.
+
+Endpoint pendukung: `GET /api/status` (status pasar + versi data) dan `POST /api/refresh` (minta update segera).
 
 ---
 
@@ -174,7 +195,7 @@ Buka browser di: **`http://127.0.0.1:5000`**
 * **Konfigurasi Parameter Analisis Dinamis**:
   Form terintegrasi di bagian atas dashboard untuk menyesuaikan parameter secara *real-time*:
   - **N-Hari Min Low**: Rentang hari minimum lokal sebelumnya (default: `5` hari).
-  - **Toleransi Min**: Batas kedekatan harga terhadap harga terendah lokal (default: `3.0`%).
+  - **Toleransi Min**: Batas kedekatan dua arah ($\pm$) harga terhadap harga terendah lokal (default: `3.0`%).
   - **Take Profit (TP)**: Pengali ATR untuk estimasi target laba (default: `2.0` $\times$ ATR).
   - **Stop Loss (SL)**: Pengali ATR untuk batas risiko proteksi modal (default: `1.0` $\times$ ATR).
 * **Rekomendasi Utama & Target Harga**:

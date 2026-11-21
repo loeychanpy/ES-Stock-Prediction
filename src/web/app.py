@@ -20,12 +20,16 @@ for path in [ROOT_DIR, SRC_DIR]:
 from data_indicators_engineers import StockDataIndicatorEngineer
 from rule_engine import infer, build_facts
 from signal_validation_backtest import backtest, validate_signals
+from .market import get_market_state
 from .utils import (
     get_available_stocks,
     load_stock_df,
     load_stock_facts,
     create_candlestick_chart,
     create_equity_curve_chart,
+    data_version,
+    data_version_info,
+    latest_data_status,
     DATA_DIR,
     ROOT_DIR as APP_ROOT_DIR
 )
@@ -39,6 +43,24 @@ def create_app():
     )
     app.config["SECRET_KEY"] = "sistem-pakar-kelompok-8-secret-2026"
     engineer = StockDataIndicatorEngineer(base_dir=os.path.join(ROOT_DIR, "storage_data"))
+    app.extensions["engine"] = engineer
+
+    # ==========================================
+    # LIVE STATUS (dipakai semua template)
+    # ==========================================
+    @app.context_processor
+    def inject_live_status():
+        updater = app.extensions.get("market_updater")
+        latest = latest_data_status()
+        return {
+            "market_state": get_market_state(),
+            "data_version": data_version(),
+            "updater_state": updater.snapshot() if updater else {
+                "running": False, "interval_minutes": 15
+            },
+            "latest_data": latest,
+            "latest_bar_date": latest.get("date", ""),
+        }
 
     # ==========================================
     # ROUTE: DASHBOARD / ANALISIS SAHAM
@@ -279,6 +301,45 @@ def create_app():
             equity_chart_html=equity_chart_html,
             trades=trades_list
         )
+
+    # ==========================================
+    # API: LIVE STATUS & REFRESH DATA
+    # ==========================================
+    def _updater():
+        return app.extensions.get("market_updater")
+
+    @app.route("/api/status")
+    def api_status():
+        updater = _updater()
+        data_info = data_version_info()
+        payload = {
+            "market": get_market_state(),
+            "updater": updater.snapshot() if updater else {
+                "running": False, "interval_minutes": 15
+            },
+            "data": {
+                "version": data_info["version"],
+                "age_seconds": data_info["age_seconds"],
+                "latest": latest_data_status(),
+            },
+        }
+        response = jsonify(payload)
+        response.headers["Cache-Control"] = "no-store"
+        return response
+
+    @app.route("/api/refresh", methods=["POST"])
+    def api_refresh():
+        updater = _updater()
+        if updater is None:
+            return jsonify({
+                "success": False,
+                "message": "Auto-update tidak aktif. Jalankan aplikasi lewat run_web.py."
+            }), 503
+        updater.request_refresh()
+        return jsonify({
+            "success": True,
+            "message": "Permintaan update dikirim. Data baru akan muncul otomatis."
+        })
 
     # ==========================================
     # API: FETCH SAHAM BARU ATAU REFRESH

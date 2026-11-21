@@ -45,11 +45,11 @@
           </li>
         </ul>
         
-        <!-- Live Status Indicator -->
+        <!-- Live Market Status -->
         <div class="d-flex align-items-center ms-lg-3 pt-2 pt-lg-0">
-          <span class="badge bg-dark border border-secondary text-light py-2 px-3 d-flex align-items-center gap-2">
-            <span class="spinner-grow spinner-grow-sm text-success" style="width: 0.5rem; height: 0.5rem;" role="status"></span>
-            <small class="font-mono-num text-muted">IDX Market</small>
+          <span class="badge bg-dark border border-secondary py-2 px-3 d-flex align-items-center gap-2">
+            <span id="navMarketDot" class="status-dot {% if market_state.is_open %}is-live{% elif market_state.status in ('pre','post','break') %}is-idle{% else %}is-off{% endif %}"></span>
+            <small id="navMarketLabel" class="font-mono-num {% if market_state.is_open %}text-success{% else %}text-muted{% endif %}">{{ market_state.label }}</small>
           </span>
         </div>
       </div>
@@ -68,6 +68,55 @@
         {% endfor %}
       {% endif %}
     {% endwith %}
+  </div>
+
+  <!-- ========================================== -->
+  <!-- LIVE MARKET & DATA STATUS STRIP            -->
+  <!-- ========================================== -->
+  <div class="container-fluid px-lg-4 mt-3">
+    <div id="liveStatusStrip"
+         class="status-strip d-flex flex-wrap align-items-center gap-2 gap-lg-3 px-3 py-2"
+         data-version="{{ data_version }}"
+         data-status-url="{{ url_for('api_status') }}"
+         data-refresh-url="{{ url_for('api_refresh') }}">
+      <span class="status-item">
+        <span id="stripDot" class="status-dot {% if market_state.is_open %}is-live{% elif market_state.status in ('pre','post','break') %}is-idle{% else %}is-off{% endif %}"></span>
+        <strong id="stripMarket" class="{% if market_state.is_open %}text-success{% else %}text-light{% endif %}">{{ market_state.label }}</strong>
+        <span class="text-muted small">IDX</span>
+        <span id="stripClock" class="text-muted small font-mono-num ms-1">{{ market_state.clock }} WIB</span>
+      </span>
+
+      <span class="status-sep d-none d-md-inline"></span>
+      <span class="status-item small text-muted">
+        <i class="bi bi-hourglass-split"></i>
+        <span id="stripNext">{{ market_state.next_event.label }}</span>
+      </span>
+
+      <span class="status-sep d-none d-lg-inline"></span>
+      <span class="status-item small text-muted">
+        <i class="bi bi-database-check"></i>
+        Bar terakhir:
+        <strong id="stripBarDate" class="text-light">{{ latest_bar_date or '-' }}</strong>
+        <span id="stripDataStatus" class="badge bg-dark border border-secondary text-muted">
+          {{ 'EOD' if latest_data and 'FINAL' in latest_data.status_data else 'INTRADAY' }}
+        </span>
+      </span>
+
+      <span class="status-sep d-none d-xl-inline"></span>
+      <span class="status-item small text-muted d-none d-xl-inline-flex">
+        <i class="bi bi-arrow-repeat"></i>
+        Auto-fetch {{ updater_state.interval_minutes }} mnt
+        <span id="stripLastRun" class="text-muted">{% if updater_state.last_run_at %} &middot; {{ updater_state.last_run_at[11:19] }} WIB{% endif %}</span>
+      </span>
+
+      <span class="ms-auto d-flex align-items-center gap-2">
+        <span id="stripHint" class="small d-none"></span>
+        <button id="btnRefreshData" class="btn btn-outline-info" type="button"
+                {% if not updater_state.running %}disabled title="Auto-update tidak aktif (jalankan lewat run_web.py)"{% endif %}>
+          <i class="bi bi-cloud-arrow-down me-1"></i>Perbarui
+        </button>
+      </span>
+    </div>
   </div>
 
   <!-- Main Body Content -->
@@ -94,5 +143,218 @@
   <!-- TradingView Lightweight Charts (Official TradingView Engine) -->
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
   {% block extra_scripts %}{% endblock %}
+
+  <!-- Live status + auto refresh (tanpa perlu menekan F5) -->
+  <script>
+  (function () {
+    "use strict";
+
+    var strip = document.getElementById("liveStatusStrip");
+    if (!strip) return;
+
+    var statusUrl = strip.dataset.statusUrl;
+    var refreshUrl = strip.dataset.refreshUrl;
+    var embeddedVersion = parseInt(strip.dataset.version || "0", 10);
+
+    var dot = document.getElementById("stripDot");
+    var navDot = document.getElementById("navMarketDot");
+    var label = document.getElementById("stripMarket");
+    var navLabel = document.getElementById("navMarketLabel");
+    var clockEl = document.getElementById("stripClock");
+    var nextEl = document.getElementById("stripNext");
+    var barDateEl = document.getElementById("stripBarDate");
+    var dataStatusEl = document.getElementById("stripDataStatus");
+    var lastRunEl = document.getElementById("stripLastRun");
+    var hintEl = document.getElementById("stripHint");
+    var btn = document.getElementById("btnRefreshData");
+
+    var pendingVersion = null;
+    var nextEvent = null;
+    var serverSkewMs = 0;
+    var fastUntil = 0;
+    var manualBusy = false;
+
+    var IDLE_STATUSES = ["pre", "post", "break"];
+    var RELOAD_KEY = "esidx_reload_version";
+
+    function fmtTime(ms, withSeconds) {
+      return new Intl.DateTimeFormat("id-ID", {
+        timeZone: "Asia/Jakarta",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: withSeconds ? "2-digit" : undefined,
+        hour12: false
+      }).format(new Date(ms));
+    }
+
+    function fmtDuration(totalSeconds) {
+      var s = Math.max(0, totalSeconds);
+      var h = Math.floor(s / 3600);
+      var m = Math.floor((s % 3600) / 60);
+      if (h > 0) return h + " j " + m + " mnt";
+      if (m > 0) return m + " mnt";
+      return s + " dtk";
+    }
+
+    function fmtBarDate(iso) {
+      if (!iso) return "-";
+      var parts = iso.split("-");
+      return parts.length === 3 ? parts[2] + "/" + parts[1] + "/" + parts[0] : iso;
+    }
+
+    function applyMarket(market) {
+      if (!market) return;
+      serverSkewMs = (market.now_ts || Date.now()) - Date.now();
+
+      var live = !!market.is_open;
+      var idle = IDLE_STATUSES.indexOf(market.status) !== -1;
+      [dot, navDot].forEach(function (el) {
+        if (!el) return;
+        el.classList.toggle("is-live", live);
+        el.classList.toggle("is-idle", !live && idle);
+        el.classList.toggle("is-off", !live && !idle);
+      });
+
+      if (label) {
+        label.textContent = market.label;
+        label.className = live ? "text-success" : "text-light";
+      }
+      if (navLabel) {
+        navLabel.textContent = market.label;
+        navLabel.className = "font-mono-num " + (live ? "text-success" : "text-muted");
+      }
+      if (clockEl) clockEl.textContent = fmtTime(market.now_ts || Date.now(), true) + " WIB";
+
+      nextEvent = market.next_event || null;
+      if (nextEl && nextEvent) nextEl.textContent = nextEvent.label;
+    }
+
+    function applyUpdater(u) {
+      if (!u) return;
+      if (lastRunEl && u.last_run_at) {
+        lastRunEl.textContent = " · " + u.last_run_at.slice(11, 19) + " WIB";
+      }
+      if (btn) {
+        if (u.running === false) {
+          btn.disabled = true;
+          btn.title = "Auto-update tidak aktif (jalankan lewat run_web.py)";
+        } else if (!manualBusy) {
+          btn.disabled = false;
+          btn.title = "Minta update data sekarang";
+        }
+      }
+    }
+
+    function showHint(text, cls) {
+      if (!hintEl) return;
+      hintEl.className = "small " + (cls || "text-info");
+      hintEl.textContent = text;
+      hintEl.classList.remove("d-none");
+    }
+
+    function hideHint() {
+      if (hintEl) hintEl.classList.add("d-none");
+    }
+
+    function canReloadNow() {
+      if (document.visibilityState !== "visible") return false;
+      var active = document.activeElement;
+      if (active && /^(INPUT|SELECT|TEXTAREA)$/.test(active.tagName)) return false;
+      if (document.querySelector(".modal.show")) return false;
+      return true;
+    }
+
+    function reloadPage() {
+      try { sessionStorage.setItem(RELOAD_KEY, String(pendingVersion || embeddedVersion)); } catch (e) {}
+      window.location.replace(window.location.pathname + window.location.search);
+    }
+
+    function checkVersion(version, ageSeconds) {
+      if (!version || version <= embeddedVersion) return;
+      pendingVersion = version;
+      // Tunggu sampai seluruh file selesai ditulis (hindari reload di tengah update).
+      if (typeof ageSeconds === "number" && ageSeconds < 3) return;
+      if (!canReloadNow()) {
+        showHint("Data baru tersedia, akan dimuat otomatis", "text-warning");
+        return;
+      }
+      reloadPage();
+    }
+
+    function poll() {
+      return fetch(statusUrl, { cache: "no-store" })
+        .then(function (res) {
+          if (!res.ok) throw new Error("status " + res.status);
+          return res.json();
+        })
+        .then(function (payload) {
+          applyMarket(payload.market);
+          applyUpdater(payload.updater);
+          if (payload.data) {
+            var latest = payload.data.latest || {};
+            if (barDateEl) barDateEl.textContent = fmtBarDate(latest.date);
+            if (dataStatusEl) {
+              dataStatusEl.textContent = (latest.status_data || "").indexOf("FINAL") !== -1 ? "EOD" : "INTRADAY";
+            }
+            checkVersion(payload.data.version, payload.data.age_seconds);
+          }
+        })
+        .catch(function () {
+          showHint("Koneksi ke server terputus, mencoba lagi...", "text-danger");
+        });
+    }
+
+    function schedule() {
+      if (fastUntil && Date.now() >= fastUntil) {
+        fastUntil = 0;
+        if (!pendingVersion) showHint("Data sudah yang terbaru.", "text-muted");
+      }
+      var delay = Date.now() < fastUntil ? 3000 : 15000;
+      window.setTimeout(function () {
+        poll().then(schedule, schedule);
+      }, delay);
+    }
+
+    if (btn) {
+      btn.addEventListener("click", function () {
+        btn.disabled = true;
+        manualBusy = true;
+        fastUntil = Date.now() + 120000;
+        showHint("Mengunduh data terbaru dari Yahoo Finance...", "text-info");
+        fetch(refreshUrl, { method: "POST", headers: { "Content-Type": "application/json" } })
+          .then(function (res) {
+            if (!res.ok) throw new Error("refresh gagal");
+            return poll();
+          })
+          .catch(function () {
+            showHint("Gagal meminta update. Cek koneksi/server.", "text-danger");
+          })
+          .then(function () {
+            window.setTimeout(function () {
+              manualBusy = false;
+              btn.disabled = false;
+            }, 4000);
+          });
+      });
+    }
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") {
+        poll();
+        if (pendingVersion && canReloadNow()) reloadPage();
+      }
+    });
+
+    window.setInterval(function () {
+      if (clockEl) clockEl.textContent = fmtTime(Date.now() + serverSkewMs, true) + " WIB";
+      if (nextEl && nextEvent && nextEvent.ts) {
+        var remaining = Math.round((nextEvent.ts - (Date.now() + serverSkewMs)) / 1000);
+        nextEl.textContent = nextEvent.label + " · " + fmtDuration(remaining);
+      }
+    }, 1000);
+
+    poll().then(schedule, schedule);
+  })();
+  </script>
 </body>
 </html>

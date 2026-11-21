@@ -29,7 +29,7 @@
       </div>
     </div>
 
-    <form action="{{ url_for('dashboard') }}" method="POST">
+    <form action="{{ url_for('dashboard') }}" method="GET">
       <div class="row g-3 align-items-end">
         <!-- Stock -->
         <div class="col-lg-3 col-md-4">
@@ -157,7 +157,7 @@
                 {% endif %}
               </div>
               <div class="col-6">
-                <span class="text-muted">Min Lokal (&le;{{ params.near_pct }}%):</span>
+                <span class="text-muted">Min Lokal (&plusmn;{{ params.near_pct }}%):</span>
                 {% if facts and facts.validation_filter.local_min_valid %}
                   <span class="badge bg-success-subtle text-success ms-1"><i class="bi bi-check-lg"></i> Valid</span>
                 {% else %}
@@ -313,7 +313,9 @@
                 Rp {{ "{:,.0f}".format(facts.validation_filter.local_min_n).replace(',', '.') if facts and facts.validation_filter else '-' }}
               </div>
               <div class="small text-muted mt-1" style="font-size: 0.70rem;">
-                Toleransi Maks (+{{ params.near_pct }}%): Rp {{ "{:,.0f}".format(facts.validation_filter.local_min_n * (1 + params.near_pct / 100.0)).replace(',', '.') if facts and facts.validation_filter else '-' }}
+                Band &plusmn;{{ params.near_pct }}%: Rp {{ "{:,.0f}".format(facts.validation_filter.local_min_n * (1 - params.near_pct / 100.0)).replace(',', '.') if facts and facts.validation_filter else '-' }}
+                &ndash;
+                Rp {{ "{:,.0f}".format(facts.validation_filter.local_min_n * (1 + params.near_pct / 100.0)).replace(',', '.') if facts and facts.validation_filter else '-' }}
               </div>
             </div>
           </div>

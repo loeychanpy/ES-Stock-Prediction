@@ -2,44 +2,44 @@
     "metadata": {
         "ticker": "BBRI.JK",
         "code": "BBRI",
-        "date": "2026-11-16",
-        "timestamp_update": "2026-11-20 02:25:21 WIB",
+        "date": "2026-11-20",
+        "timestamp_update": "2026-11-21 11:48:32 WIB",
         "status_data": "FINAL (EOD)",
         "source_csv_file": "C:\\Users\\Pongo\\OneDrive\\Dokumen\\TUGAS SEM 5\\Expert System\\Code\\storage_data\\2_inference_ready\\BBRI_clean_indicators.csv"
     },
     "price_volume": {
         "open": 3060.0,
         "high": 3090.0,
-        "low": 3030.0,
-        "close": 3060.0,
-        "volume": 126840500
+        "low": 3020.0,
+        "close": 3080.0,
+        "volume": 144971400
     },
     "indicator_inputs": {
-        "rsi_14": 59.9007,
-        "macd_hist": 45.3859,
-        "bb_pct_b": 0.9646
+        "rsi_14": 58.9948,
+        "macd_hist": 40.1674,
+        "bb_pct_b": 0.8092
     },
     "previous_inputs": {
-        "rsi_14": 59.9007,
-        "macd_hist": 40.6929,
-        "bb_pct_b": 0.9807
+        "rsi_14": 59.8369,
+        "macd_hist": 44.0936,
+        "bb_pct_b": 0.8565
     },
     "previous2_inputs": {
-        "rsi_14": 58.3961,
-        "macd_hist": 30.7354,
-        "bb_pct_b": 0.9863
+        "rsi_14": 56.9863,
+        "macd_hist": 45.9,
+        "bb_pct_b": 0.8005
     },
     "validation_filter": {
-        "sma_20": 2854.5,
-        "sma_50": 3037.0,
+        "sma_20": 2901.5,
+        "sma_50": 3015.6,
         "is_uptrend": false,
-        "local_min_n": 2780.0,
+        "local_min_n": 2980.0,
         "near_local_min": false,
         "signal_valid": false
     },
     "risk_management": {
-        "atr_14": 109.1705,
-        "initial_sl_estimate": 2950.83,
-        "initial_tp_estimate": 3278.34
+        "atr_14": 107.7171,
+        "initial_sl_estimate": 2972.28,
+        "initial_tp_estimate": 3295.43
     }
 }

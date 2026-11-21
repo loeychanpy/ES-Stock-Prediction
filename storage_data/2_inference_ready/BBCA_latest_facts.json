@@ -2,44 +2,44 @@
     "metadata": {
         "ticker": "BBCA.JK",
         "code": "BBCA",
-        "date": "2026-11-16",
-        "timestamp_update": "2026-11-20 02:25:21 WIB",
+        "date": "2026-11-20",
+        "timestamp_update": "2026-11-21 11:48:31 WIB",
         "status_data": "FINAL (EOD)",
         "source_csv_file": "C:\\Users\\Pongo\\OneDrive\\Dokumen\\TUGAS SEM 5\\Expert System\\Code\\storage_data\\2_inference_ready\\BBCA_clean_indicators.csv"
     },
     "price_volume": {
-        "open": 5500.0,
-        "high": 5525.0,
-        "low": 5425.0,
-        "close": 5475.0,
-        "volume": 74752000
+        "open": 5600.0,
+        "high": 5675.0,
+        "low": 5525.0,
+        "close": 5550.0,
+        "volume": 147637100
     },
     "indicator_inputs": {
-        "rsi_14": 52.726,
-        "macd_hist": 94.67,
-        "bb_pct_b": 0.8795
+        "rsi_14": 52.8974,
+        "macd_hist": 86.3024,
+        "bb_pct_b": 0.7579
     },
     "previous_inputs": {
-        "rsi_14": 53.5719,
-        "macd_hist": 95.1607,
-        "bb_pct_b": 0.9506
+        "rsi_14": 56.1598,
+        "macd_hist": 100.4683,
+        "bb_pct_b": 0.8739
     },
     "previous2_inputs": {
-        "rsi_14": 52.8698,
-        "macd_hist": 88.2786,
-        "bb_pct_b": 0.9844
+        "rsi_14": 59.5713,
+        "macd_hist": 105.8472,
+        "bb_pct_b": 1.0165
     },
     "validation_filter": {
-        "sma_20": 5159.25,
-        "sma_50": 5744.6,
+        "sma_20": 5254.25,
+        "sma_50": 5677.1,
         "is_uptrend": false,
-        "local_min_n": 5250.0,
-        "near_local_min": false,
+        "local_min_n": 5425.0,
+        "near_local_min": true,
         "signal_valid": false
     },
     "risk_management": {
-        "atr_14": 189.9692,
-        "initial_sl_estimate": 5285.03,
-        "initial_tp_estimate": 5854.94
+        "atr_14": 203.8335,
+        "initial_sl_estimate": 5346.17,
+        "initial_tp_estimate": 5957.67
     }
 }

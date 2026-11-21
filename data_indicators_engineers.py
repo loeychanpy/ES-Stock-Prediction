@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import threading
 from datetime import datetime
 import pytz
 import schedule
@@ -18,6 +19,10 @@ class StockDataIndicatorEngineer:
         
         os.makedirs(self.raw_dir, exist_ok=True)
         os.makedirs(self.out_dir, exist_ok=True)
+
+        # Serialisasi proses tulis file antar-thread (web updater vs request manual),
+        # supaya dua proses tidak menulis CSV/JSON yang sama secara bersamaan.
+        self._io_lock = threading.Lock()
 
     def format_ticker(self, ticker: str) -> str:
         """Memastikan kode saham menggunakan akhiran .JK untuk BEI/IDX."""
@@ -124,9 +129,14 @@ class StockDataIndicatorEngineer:
         # 7. Filter Validasi Sinyal (Tahap 3: Tren Naik & Dekat Minimum Lokal NPMM)
         # Local_Min_N memakai Low N hari SEBELUM hari ini (shift 1) supaya tidak look-ahead,
         # konsisten dengan validate_signals() pada modul backtest.
+        # Jarak diukur dua arah (|Close - Local_Min_N|): harga yang tertembus lebih dari
+        # local_min_tol di bawah low dianggap support gagal, bukan lagi "dekat minimum".
         data['Is_Uptrend'] = data['SMA_20'] > data['SMA_50']
         data['Local_Min_N'] = data['Low'].rolling(window=npmm_window).min().shift(1)
-        data['Near_Local_Min'] = (data['Close'] - data['Local_Min_N']) / data['Local_Min_N'] <= local_min_tol
+        data['Near_Local_Min'] = (
+            (data['Close'] - data['Local_Min_N']).abs()
+            <= data['Local_Min_N'] * local_min_tol
+        )
         data['Signal_Valid'] = data['Is_Uptrend'] & data['Near_Local_Min']
 
         # Bulatkan angka desimal agar file CSV bersih dan rapi saat dibuka
@@ -141,11 +151,39 @@ class StockDataIndicatorEngineer:
     # ==========================================
     # 3. EXPORT FILE SIAP PAKAI (CSV & JSON)
     # ==========================================
+    @staticmethod
+    def _replace_with_retry(src: str, dst: str, attempts: int = 5) -> None:
+        """os.replace dengan retry (Windows bisa menolak sesaat saat file sedang dibaca)."""
+        for i in range(attempts):
+            try:
+                os.replace(src, dst)
+                return
+            except PermissionError:
+                if i == attempts - 1:
+                    raise
+                time.sleep(0.05)
+
+    def _write_csv_atomic(self, df: pd.DataFrame, path: str) -> None:
+        """Tulis CSV lewat file sementara lalu replace, agar pembaca tidak melihat file setengah jadi."""
+        tmp = f"{path}.tmp"
+        df.to_csv(tmp)
+        self._replace_with_retry(tmp, path)
+
+    def _write_json_atomic(self, payload: dict, path: str) -> None:
+        tmp = f"{path}.tmp"
+        with open(tmp, 'w', encoding='utf-8') as f:
+            json.dump(payload, f, indent=4)
+        self._replace_with_retry(tmp, path)
+
     def process_and_export_files(self, ticker: str, is_final: bool = False) -> dict:
         """
         Menghitung indikator lalu langsung menyimpannya ke dalam file CSV dan JSON
         agar bisa langsung dibaca oleh modul Inference Engine / anggota tim lain.
         """
+        with self._io_lock:
+            return self._process_and_export_files_locked(ticker, is_final)
+
+    def _process_and_export_files_locked(self, ticker: str, is_final: bool) -> dict:
         code = self.clean_code(ticker)
         raw_df = self.fetch_and_store(ticker)
         clean_df = self.calculate_indicators(raw_df)
@@ -155,7 +193,7 @@ class StockDataIndicatorEngineer:
 
         # 1. Simpan Clean DataFrame + Indikator ke File CSV (Untuk Backtesting & Grafik)
         clean_csv_path = os.path.join(self.out_dir, f"{code}_clean_indicators.csv")
-        clean_df.to_csv(clean_csv_path)
+        self._write_csv_atomic(clean_df, clean_csv_path)
 
         # 2. Susun Fakta Hari Terakhir dan Simpan ke File JSON (Untuk Inference Engine Harian)
         latest = clean_df.iloc[-1]
@@ -210,8 +248,7 @@ class StockDataIndicatorEngineer:
         }
 
         facts_json_path = os.path.join(self.out_dir, f"{code}_latest_facts.json")
-        with open(facts_json_path, 'w', encoding='utf-8') as f:
-            json.dump(inference_facts, f, indent=4)
+        self._write_json_atomic(inference_facts, facts_json_path)
 
         return {
             "ticker": code,
@@ -224,27 +261,45 @@ class StockDataIndicatorEngineer:
 # ==========================================
 # 4. SCHEDULER OTOMATIS (15 MENIT & 16:30 WIB)
 # ==========================================
+def export_all_stocks(engineer: StockDataIndicatorEngineer, tickers: list, is_final: bool = False):
+    """Unduh + ekspor semua saham tanpa memeriksa jam bursa.
+
+    Dipakai oleh web updater (yang punya kontrol jadwal sendiri) dan oleh
+    `update_all_stocks`. Kegagalan satu saham tidak menghentikan saham lain.
+    """
+    all_latest_facts = {}
+    failed = {}
+    for t in tickers:
+        try:
+            res = engineer.process_and_export_files(t, is_final=is_final)
+        except Exception as exc:  # noqa: BLE001
+            failed[t] = str(exc)
+            print(f" [ERR] {engineer.clean_code(t)} -> {exc}")
+            continue
+        all_latest_facts[res["ticker"]] = res["facts"]
+        print(f" [OK] {res['ticker']} -> CSV: {res['csv_path']} | JSON: {res['json_path']}")
+
+    # Simpan juga 1 file gabungan JSON berisi seluruh saham agar Inference Engine bisa baca sekaligus
+    if all_latest_facts:
+        summary_json_path = os.path.join(engineer.out_dir, "ALL_STOCKS_latest_facts.json")
+        engineer._write_json_atomic(all_latest_facts, summary_json_path)
+        print(f" [OK] Ringkasan Semua Saham -> {summary_json_path}")
+
+    return {"updated": list(all_latest_facts), "failed": failed}
+
+
 def update_all_stocks(engineer: StockDataIndicatorEngineer, tickers: list, is_final: bool = False):
     now = datetime.now(engineer.tz)
     # Untuk intraday, hanya jalan Senin-Jumat jam 09:00 - 16:15 WIB
     if not is_final:
         if not (now.weekday() < 5 and (9 <= now.hour < 16 or (now.hour == 16 and now.minute <= 15))):
-            return
+            return {"updated": [], "failed": {}, "skipped": True}
 
     label = "FINAL EOD 16:30" if is_final else "INTRADAY 15m"
     print(f"\n[{now.strftime('%H:%M:%S WIB')}] === UPDATE FILE INDIKATOR ({label}) ===")
-    
-    all_latest_facts = {}
-    for t in tickers:
-        res = engineer.process_and_export_files(t, is_final=is_final)
-        all_latest_facts[res["ticker"]] = res["facts"]
-        print(f" [OK] {res['ticker']} -> CSV: {res['csv_path']} | JSON: {res['json_path']}")
-
-    # Simpan juga 1 file gabungan JSON berisi seluruh saham agar Inference Engine bisa baca sekaligus
-    summary_json_path = os.path.join(engineer.out_dir, "ALL_STOCKS_latest_facts.json")
-    with open(summary_json_path, 'w', encoding='utf-8') as f:
-        json.dump(all_latest_facts, f, indent=4)
-    print(f" [OK] Ringkasan Semua Saham -> {summary_json_path}")
+    result = export_all_stocks(engineer, tickers, is_final=is_final)
+    result["skipped"] = False
+    return result
 
 
 if __name__ == "__main__":

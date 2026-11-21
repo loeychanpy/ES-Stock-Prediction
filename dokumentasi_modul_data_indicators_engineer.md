@@ -69,7 +69,7 @@ Garis acuan: **0.0** (bawah), **0.5** (tengah/pivot), **1.0** (atas).
 | Indikator 3 | `BB_PctB` / `bb_pct_b` | $\frac{\text{Close} - \text{BB\_Lower}}{\text{BB\_Upper} - \text{BB\_Lower}}$ | Pemicu R3, R4, R5, R8, R9, R10 |
 | Pendukung visual | `Volume_Ratio` / `volume_ratio` | $\frac{\text{Volume}}{\text{SMA}(\text{Volume}, 20)}$ | **Tidak dipakai aturan** (hanya untuk tampilan/analisis) |
 | Filter tren | `Is_Uptrend` / `is_uptrend` | $\text{SMA}_{20} > \text{SMA}_{50}$ | Syarat pertama validasi sinyal |
-| Filter NPMM | `Near_Local_Min` / `near_local_min` | $\frac{\text{Close} - \text{PriorLow}_N}{\text{PriorLow}_N} \le 0.03$ | Syarat kedua validasi sinyal |
+| Filter NPMM | `Near_Local_Min` / `near_local_min` | $\left|\frac{\text{Close} - \text{PriorLow}_N}{\text{PriorLow}_N}\right| \le 0.03$ (**dua arah**) | Syarat kedua validasi sinyal |
 | Referensi NPMM | `Local_Min_N` / `local_min_n` | $\min(\text{Low}_{t-N} \dots \text{Low}_{t-1})$ (**shift 1**) | Harga terendah N hari **sebelum** hari ini |
 | Fakta Tahap 3 | `Signal_Valid` / `signal_valid` | `Is_Uptrend` $\land$ `Near_Local_Min` | Gerbang akhir: jika `False`, keputusan dipaksa TAHAN |
 | Risiko | `ATR_14` / `atr_14` | Wilder's Smoothing True Range 14 hari | Dasar TP ($2\times$) dan SL ($1\times$) |
@@ -115,8 +115,10 @@ Kode sumber lengkap ada di **`data_indicators_engineers.py`** (root proyek). Bag
 # Filter Validasi Sinyal (Tahap 3: Tren Naik & Dekat Minimum Lokal NPMM)
 data['Is_Uptrend'] = data['SMA_20'] > data['SMA_50']
 data['Local_Min_N'] = data['Low'].rolling(window=npmm_window).min().shift(1)
+# Jarak dua arah: -tol <= (Close - PriorLow)/PriorLow <= +tol
 data['Near_Local_Min'] = (
-    (data['Close'] - data['Local_Min_N']) / data['Local_Min_N'] <= local_min_tol
+    (data['Close'] - data['Local_Min_N']).abs()
+    <= data['Local_Min_N'] * local_min_tol
 )
 data['Signal_Valid'] = data['Is_Uptrend'] & data['Near_Local_Min']
 ```
@@ -185,3 +187,14 @@ python src/run_inference.py BBCA             # inferensi snapshot terakhir
 python src/run_evaluation.py --all --save-csv
 python src/signal_validation_backtest.py --all --save-details
 ```
+
+### D. Integrasi dengan Web App (auto-update)
+
+`export_all_stocks()` pada modul ini juga dipakai oleh `src/web/updater.py`
+(background thread di `run_web.py`) untuk menarik candle terbaru setiap 15 menit
+selama sesi bursa. Penulisan CSV/JSON dilakukan **atomik** (`*.tmp` lalu
+`os.replace`) dan dilindungi `threading.Lock`, sehingga halaman web yang membaca
+file tidak pernah menerima file setengah jadi saat update berjalan.
+
+Dengan updater aktif, `python data_indicators_engineers.py` tidak perlu dijalankan
+terpisah; script tersebut tetap berguna untuk *backfill* data awal.

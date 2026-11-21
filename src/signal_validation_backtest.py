@@ -37,7 +37,9 @@ def validate_signals(df: pd.DataFrame, n_days: int = 5,
 
     The reference is the minimum Low of the PREVIOUS N completed sessions
     (shift(1)); current-day data is not part of the reference window.
-    Current Close must be no more than near_pct above that reference.
+    Current Close must be within near_pct (two-sided) of that reference:
+    a close far above it is chasing price, a close far below it means the
+    support has already failed.
     """
     if n_days < 2 or near_pct < 0:
         raise ValueError("n_days harus >= 2 dan near_pct tidak boleh negatif")
@@ -48,7 +50,11 @@ def validate_signals(df: pd.DataFrame, n_days: int = 5,
         raise ValueError(f"Kolom wajib tidak ada: {sorted(missing)}")
     prior_n_day_low = out["Low"].rolling(n_days, min_periods=n_days).min().shift(1)
     out["Prior_N_Day_Low"] = prior_n_day_low
-    out["Local_Min_Valid"] = out["Close"].le(prior_n_day_low * (1 + near_pct))
+    # Jarak dua arah: -near_pct <= (Close - PriorLow) / PriorLow <= +near_pct
+    out["Local_Min_Valid"] = (
+        (out["Close"] - prior_n_day_low).abs()
+        <= prior_n_day_low * near_pct
+    )
     out["Trend_Valid"] = out["SMA_20"].gt(out["SMA_50"])
     out["Signal_Valid_Recalc"] = (
         out["Local_Min_Valid"] & out["Trend_Valid"] & prior_n_day_low.notna()

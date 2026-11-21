@@ -17,7 +17,7 @@
       <span class="badge bg-dark border border-secondary text-muted">Bebas Look-Ahead Bias &bull; Fee Beli 0.15% / Jual 0.25%</span>
     </div>
 
-    <form action="{{ url_for('backtesting') }}" method="POST">
+    <form action="{{ url_for('backtesting') }}" method="GET">
       <div class="row g-3 align-items-end">
         <!-- Stock -->
         <div class="col-lg-3 col-md-4">
@@ -318,13 +318,13 @@
                   <!-- Filter 2: Dekat Minimum Lokal NPMM -->
                   <div class="p-2 rounded mb-3" style="background: rgba(34, 197, 94, 0.06); border: 1px solid rgba(34, 197, 94, 0.3);">
                     <div class="d-flex justify-content-between align-items-center small">
-                      <span class="fw-semibold text-light">Filter 2: Minimum Lokal NPMM (&le; {{ params.near_pct }}%)</span>
+                      <span class="fw-semibold text-light">Filter 2: Minimum Lokal NPMM (&plusmn;{{ params.near_pct }}%)</span>
                       <span class="badge bg-success text-white"><i class="bi bi-check-lg"></i> Valid</span>
                     </div>
                     <div class="font-mono-num small text-muted mt-1">
                       Close: <strong class="text-white">Rp {{ "{:,.0f}".format(snap.ohlcv.close).replace(',', '.') }}</strong> |
                       Low {{ params.n_days }} Hari: <strong class="text-info">Rp {{ "{:,.0f}".format(snap.indicators.prior_n_day_low).replace(',', '.') }}</strong>
-                      (Jarak: <strong class="text-success">+{{ snap.indicators.dist_to_low_pct }}%</strong>)
+                      (Jarak: <strong class="{% if snap.indicators.dist_to_low_pct >= 0 %}text-success{% else %}text-warning{% endif %}">{% if snap.indicators.dist_to_low_pct >= 0 %}+{% endif %}{{ snap.indicators.dist_to_low_pct }}%</strong>)
                     </div>
                   </div>
 

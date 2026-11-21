@@ -8,6 +8,7 @@ Utility functions for Web App:
 import os
 import glob
 import json
+import time
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
@@ -49,6 +50,59 @@ def load_stock_facts(code: str) -> dict:
         except Exception:
             pass
     return {}
+
+
+def _latest_data_mtime() -> float:
+    """mtime terbaru (detik epoch) dari file CSV/JSON di folder data siap pakai."""
+    stamp = 0.0
+    for pattern in ("*_clean_indicators.csv", "*_latest_facts.json"):
+        for path in glob.glob(os.path.join(DATA_DIR, pattern)):
+            try:
+                stamp = max(stamp, os.stat(path).st_mtime)
+            except OSError:
+                continue
+    return stamp
+
+
+def data_version() -> int:
+    """Stempel versi data (mtime terbaru CSV/JSON).
+
+    Dipakai halaman web untuk mendeteksi kapan data berubah dan perlu reload.
+    """
+    return int(_latest_data_mtime() * 1_000_000_000)
+
+
+def data_version_info() -> dict:
+    """Versi data + umur tulisan terakhir (detik), untuk menghindari reload
+    di tengah proses penulisan beberapa file."""
+    stamp = _latest_data_mtime()
+    return {
+        "version": int(stamp * 1_000_000_000),
+        "age_seconds": round(time.time() - stamp, 1) if stamp else None,
+    }
+
+
+def latest_data_status() -> dict:
+    """Ringkasan file fakta terbaru: tanggal bar, status, dan jam update."""
+    best = {}
+    for path in glob.glob(os.path.join(DATA_DIR, "*_latest_facts.json")):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                payload = json.load(f)
+        except Exception:
+            continue
+        meta = payload.get("metadata") if isinstance(payload, dict) else None
+        if not isinstance(meta, dict):
+            continue
+        stamp = meta.get("timestamp_update", "")
+        if stamp > best.get("timestamp_update", ""):
+            best = {
+                "ticker": meta.get("code", ""),
+                "date": meta.get("date", ""),
+                "status_data": meta.get("status_data", ""),
+                "timestamp_update": stamp,
+            }
+    return best
 
 
 def filter_by_period(df: pd.DataFrame, period: str = "6M") -> pd.DataFrame:
