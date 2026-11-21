@@ -198,6 +198,7 @@ Endpoint pendukung: `GET /api/status` (status pasar + versi data) dan `POST /api
   - **Toleransi Min**: Batas kedekatan dua arah ($\pm$) harga terhadap harga terendah lokal (default: `3.0`%).
   - **Take Profit (TP)**: Pengali ATR untuk estimasi target laba (default: `2.0` $\times$ ATR).
   - **Stop Loss (SL)**: Pengali ATR untuk batas risiko proteksi modal (default: `1.0` $\times$ ATR).
+  - **Panduan Parameter**: Tombol *collapsible* "Panduan parameter & indikator" di bawah form menjelaskan arti NPMM, toleransi dua arah, TP/SL, serta setelan tiap indikator. Tertutup secara default dan status buka/tutupnya diingat saat halaman memuat ulang otomatis.
 * **Rekomendasi Utama & Target Harga**:
   Badge sinyal tegas (**BELI** hijau atau **TAHAN** abu-abu), status lolos/tidaknya filter validasi Tahap 3 (Tren SMA20>50 & NPMM Proximity), serta target harga dinamis Entry, TP, dan SL.
 * **Status Fakta & Pemicu Indikator**:

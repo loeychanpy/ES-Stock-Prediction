@@ -642,3 +642,128 @@ footer {
     display: none;
   }
 }
+
+/* ========================================================
+   Panduan Parameter (collapsible help)
+   ======================================================== */
+.param-help {
+  border-top: 1px dashed var(--border-color);
+  margin-top: 0.9rem;
+  padding-top: 0.6rem;
+}
+
+.param-help-toggle {
+  background: none;
+  border: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  transition: color 0.15s ease;
+}
+
+.param-help-toggle:hover,
+.param-help-toggle:focus-visible {
+  color: var(--accent-cyan);
+  outline: none;
+}
+
+.param-help-caret {
+  font-size: 0.65rem;
+  transition: transform 0.2s ease;
+}
+
+.param-help-toggle[aria-expanded="true"] .param-help-caret {
+  transform: rotate(180deg);
+}
+
+.param-help-body {
+  margin-top: 0.7rem;
+  padding: 0.85rem 1rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.param-help-body h6 {
+  margin-bottom: 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-main);
+}
+
+.param-help-body strong {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.param-help-body code {
+  padding: 0.05rem 0.25rem;
+  background-color: rgba(56, 189, 248, 0.08);
+  border-radius: 3px;
+  color: var(--accent-cyan);
+  font-size: 0.76rem;
+}
+
+.param-help-formula {
+  padding: 0.35rem 0.6rem;
+  margin: 0.25rem 0 0.5rem;
+  background-color: rgba(56, 189, 248, 0.06);
+  border-left: 2px solid var(--accent-cyan);
+  border-radius: 0 4px 4px 0;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.74rem;
+  color: #cbd5e1;
+}
+
+.param-help-divider {
+  margin: 0.85rem 0;
+  border-color: var(--border-color);
+  opacity: 1;
+}
+
+.param-help-table {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--text-muted);
+  --bs-table-border-color: var(--border-color);
+}
+
+.param-help-table th {
+  padding-top: 0.3rem;
+  padding-bottom: 0.3rem;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.param-help-table td {
+  padding-top: 0.32rem;
+  padding-bottom: 0.32rem;
+  vertical-align: top;
+}
+
+.param-help-table em {
+  color: #cbd5e1;
+  font-style: italic;
+}
+
+.param-help-note {
+  font-size: 0.74rem;
+  color: #7c8aa0;
+}
+
+@media (max-width: 575.98px) {
+  .param-help-body {
+    padding: 0.7rem 0.8rem;
+    font-size: 0.76rem;
+  }
+}
