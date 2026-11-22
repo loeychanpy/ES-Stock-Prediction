@@ -23,12 +23,12 @@
           <p>
             <strong>NPMM</strong> mengukur seberapa dekat harga penutupan dengan
             <em>minimum lokal</em> N hari sebelumnya. Sistem mengambil
-            <code>Low</code> terendah dari <strong>{{ params.n_days }} hari sebelum</strong>
+            <code>Low</code> terendah dari <strong>N hari sebelum</strong>
             hari ini (hari ini tidak ikut dihitung) sebagai acuan.
           </p>
           <p class="mb-1">
-            <strong>Toleransi</strong> adalah lebar pita di sekitar acuan tersebut, diukur
-            <strong>dua arah</strong>:
+            <strong>Toleransi</strong> adalah lebar pita di sekitar acuan tersebut,
+            diukur <strong>dua arah</strong>:
           </p>
           <p class="param-help-formula">
             |Close &minus; Acuan| &le; Acuan &times; {{ near_txt }}%
@@ -52,17 +52,147 @@
             TP = Harga acuan + ({{ tp_txt }} &times; ATR) &nbsp;&bull;&nbsp;
             SL = Harga acuan &minus; ({{ sl_txt }} &times; ATR)
           </p>
-          <p class="mb-1">
+          <p class="mb-0">
             Harga acuan: <strong>Close hari sinyal</strong> di dashboard, dan
             <strong>Open hari berikutnya</strong> saat backtest (bebas look-ahead).
             Dengan setelan sekarang, potensi untung {{ tp_txt }}&times; risiko
-            ({{ tp_txt }} : {{ sl_txt }}), sebelum fee.
-          </p>
-          <p class="mb-0">
-            ATR diambil dari hari sinyal, jadi TP dan SL tidak berubah selama posisi terbuka.
+            ({{ tp_txt }} : {{ sl_txt }}), sebelum fee. ATR diambil dari hari sinyal,
+            jadi TP dan SL tidak berubah selama posisi terbuka.
           </p>
         </div>
       </div>
+
+      <hr class="param-help-divider">
+
+      <!-- Akibat tiap nilai -->
+      <h6><i class="bi bi-table me-1"></i> Akibat tiap nilai (hasil uji 3 saham, data &plusmn;3 tahun)</h6>
+      <p class="mb-2">
+        Setelan aktif: <strong>N = {{ params.n_days }} hari</strong>,
+        toleransi <strong>{{ near_txt }}%</strong>,
+        TP <strong>{{ tp_txt }}&times;ATR</strong>,
+        SL <strong>{{ sl_txt }}&times;ATR</strong>.
+        Angka berikut adalah rata-rata BBCA, BBRI, dan TLKM; parameter lain
+        memakai nilai default saat satu parameter diuji. Default <strong>5 hari</strong>
+        dipilih karena mewakili satu minggu bursa, dan <strong>3%</strong> karena
+        kira-kira selebar satu ATR harian &mdash; keduanya berada di tengah rentang
+        yang paling seimbang di bawah ini.
+      </p>
+
+      <div class="row g-3">
+        <!-- N -->
+        <div class="col-xl-6">
+          <p class="param-help-subtitle">N-Hari Min Low (default 5 hari)</p>
+          <table class="table table-sm param-help-table param-help-values mb-0">
+            <tbody>
+              <tr>
+                <td>2&ndash;3 hari</td>
+                <td>Low cepat berubah; sinyal naik ke 55, return 11,9%, drawdown &minus;11,1%. Rawan terpicu noise 1&ndash;2 hari.</td>
+              </tr>
+              <tr class="param-help-good">
+                <td>4&ndash;7 hari <span class="param-help-tag">Disarankan</span></td>
+                <td>Satu minggu bursa; 49 sinyal, win rate 52,6%, return 10,8%, drawdown &minus;10,7%.</td>
+              </tr>
+              <tr>
+                <td>8&ndash;15 hari</td>
+                <td>Low lebih dalam dan stabil; sinyal turun ke 31, win rate 54,0%, tetapi return 7,9% karena entry makin telat.</td>
+              </tr>
+              <tr>
+                <td>&gt;15 hari</td>
+                <td>Low sudah lama; sinyal tinggal 20, win rate 43,9%, return 4,9%. Banyak peluang terlewat.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Toleransi -->
+        <div class="col-xl-6">
+          <p class="param-help-subtitle">Toleransi (default 3%)</p>
+          <table class="table table-sm param-help-table param-help-values mb-0">
+            <tbody>
+              <tr>
+                <td>0,5&ndash;1%</td>
+                <td>Terlalu ketat: hanya 6 sinyal, win rate 22,2%, return &minus;1,1%. Harga jarang menempel persis di low.</td>
+              </tr>
+              <tr>
+                <td>2%</td>
+                <td>Selektif: 22 sinyal, win rate tertinggi 61,9%, return 6,3%. Cocok untuk saham yang pergerakannya tenang.</td>
+              </tr>
+              <tr class="param-help-good">
+                <td>2&ndash;3% <span class="param-help-tag">Disarankan</span></td>
+                <td>3% kira-kira 1&times;ATR harian: 49 sinyal, win rate 52,6%, return tertinggi 10,8%, drawdown &minus;10,7%. Masih ada ruang untuk wick.</td>
+              </tr>
+              <tr>
+                <td>&gt;3&ndash;5%</td>
+                <td>Mulai longgar: 4% &rarr; 62 sinyal, win rate 48,1%, return 7,4%; 5% &rarr; 74 sinyal, win rate 42,6%, return 1,7%, drawdown &minus;14,5%.</td>
+              </tr>
+              <tr>
+                <td>&gt;5%</td>
+                <td>NPMM nyaris tidak menyaring: 10% &rarr; 92 sinyal, win rate 37,6%, return &minus;7,6%, drawdown &minus;19,1%. Harga yang sudah jauh dari low ikut dianggap dekat.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- TP -->
+        <div class="col-xl-6">
+          <p class="param-help-subtitle">Take Profit (default 2&times;ATR)</p>
+          <table class="table table-sm param-help-table param-help-values mb-0">
+            <tbody>
+              <tr>
+                <td>1&times;</td>
+                <td>Cepat kena TP: win rate 67,4%, tetapi return hanya 7,8% karena untung per transaksi kecil.</td>
+              </tr>
+              <tr class="param-help-good">
+                <td>1,5&ndash;2,5&times; <span class="param-help-tag">Disarankan</span></td>
+                <td>2&times; (default): win rate 52,6%, return tertinggi 10,8%, drawdown &minus;10,7%; rasio 2:1 terhadap SL.</td>
+              </tr>
+              <tr>
+                <td>3&times;</td>
+                <td>Butuh pergerakan lebih besar: win rate turun ke 34,3%, return 2,9%, drawdown &minus;15,9%.</td>
+              </tr>
+              <tr>
+                <td>&ge;4&times;</td>
+                <td>TP jarang kena: win rate 26,6%, return 2,6%, drawdown &minus;16,7%; banyak posisi ditutup SL atau akhir data.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- SL -->
+        <div class="col-xl-6">
+          <p class="param-help-subtitle">Stop Loss (default 1&times;ATR)</p>
+          <table class="table table-sm param-help-table param-help-values mb-0">
+            <tbody>
+              <tr>
+                <td>0,5&ndash;0,75&times;</td>
+                <td>Stop terlalu rapat: sering kena noise; win rate 34,8&ndash;39,5%, return 2,3&ndash;2,9%.</td>
+              </tr>
+              <tr class="param-help-good">
+                <td>1&times; <span class="param-help-tag">Disarankan</span></td>
+                <td>Win rate 52,6%, return 10,8%, drawdown &minus;10,7% &mdash; kombinasi terbaik pada pengujian ini.</td>
+              </tr>
+              <tr>
+                <td>1,5&times;</td>
+                <td>Lebih tahan noise: win rate naik ke 60,9%, tetapi return turun ke 4,8% dan drawdown melebar ke &minus;16,9%.</td>
+              </tr>
+              <tr>
+                <td>&ge;2&times;</td>
+                <td>Risiko per transaksi terlalu besar: return 1,2%, drawdown &minus;18,7%. Satu kerugian menghapus beberapa keuntungan.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <p class="param-help-summary mb-0">
+        <strong>Ringkas:</strong> N 4&ndash;7 hari, toleransi 2&ndash;3%, TP 2&times;ATR
+        (1,5&ndash;2,5&times; masih wajar), dan SL 1&times;ATR adalah rentang yang paling
+        seimbang pada pengujian ini. Toleransi 1% terlalu ketat (hampir tidak ada sinyal),
+        sedangkan di atas 3% sinyal memang bertambah tetapi win rate dan return cenderung
+        turun serta drawdown membesar. Angka uji memakai fee 0,15% beli dan 0,25% jual,
+        dan bisa berbeda untuk saham lain &mdash; selalu cek hasilnya di halaman Backtest
+        sebelum memakai setelan baru.
+      </p>
 
       <hr class="param-help-divider">
 

@@ -2,3 +2,6 @@
 *.json
 
 __pycache__/
+
+# Artefak browser test (Playwright MCP)
+.playwright-mcp/
