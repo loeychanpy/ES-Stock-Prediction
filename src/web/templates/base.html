@@ -261,6 +261,8 @@
       var active = document.activeElement;
       if (active && /^(INPUT|SELECT|TEXTAREA)$/.test(active.tagName)) return false;
       if (document.querySelector(".modal.show")) return false;
+      // Jangan reload saat tur Panduan (Driver.js) sedang berjalan
+      if (document.body.classList.contains("driver-active")) return false;
       return true;
     }
 

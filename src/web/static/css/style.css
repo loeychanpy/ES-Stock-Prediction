@@ -807,3 +807,123 @@ footer {
   border-radius: 0 4px 4px 0;
   font-size: 0.78rem;
 }
+
+/* ========================================================
+   Guided Tour (Driver.js) - Dark Terminal Theme
+   ======================================================== */
+.driver-popover.es-tour-popover {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--accent-cyan);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(56, 189, 248, 0.15);
+  font-family: 'Inter', sans-serif;
+  max-width: 360px;
+  min-width: 260px;
+  padding: 16px 18px;
+}
+
+.driver-popover.es-tour-popover .driver-popover-title {
+  color: var(--accent-cyan);
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+}
+
+.driver-popover.es-tour-popover .driver-popover-description {
+  color: #cbd5e1;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  font-family: 'Inter', sans-serif;
+}
+
+.driver-popover.es-tour-popover .driver-popover-description code {
+  color: var(--accent-yellow);
+}
+
+.driver-popover.es-tour-popover .driver-popover-close-btn {
+  color: var(--text-muted);
+}
+.driver-popover.es-tour-popover .driver-popover-close-btn:hover {
+  color: var(--text-main);
+}
+
+.driver-popover.es-tour-popover .driver-popover-footer {
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.driver-popover.es-tour-popover .driver-popover-progress-text {
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+}
+
+.driver-popover.es-tour-popover .driver-popover-footer button {
+  background-color: var(--bg-secondary);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  text-shadow: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  padding: 4px 10px;
+}
+.driver-popover.es-tour-popover .driver-popover-footer button:hover {
+  border-color: var(--accent-cyan);
+}
+.driver-popover.es-tour-popover .driver-popover-next-btn {
+  background-color: var(--accent-cyan) !important;
+  color: #0b0f19 !important;
+  border-color: var(--accent-cyan) !important;
+  font-weight: 700;
+}
+
+/* Arrow (panah): bigger and cyan so it stands out against the dark page */
+.driver-popover.es-tour-popover .driver-popover-arrow {
+  border-width: 9px;
+}
+.driver-popover.es-tour-popover .driver-popover-arrow-side-left { border-left-color: var(--accent-cyan); left: 100%; }
+.driver-popover.es-tour-popover .driver-popover-arrow-side-right { border-right-color: var(--accent-cyan); right: 100%; }
+.driver-popover.es-tour-popover .driver-popover-arrow-side-top { border-top-color: var(--accent-cyan); top: 100%; }
+.driver-popover.es-tour-popover .driver-popover-arrow-side-bottom { border-bottom-color: var(--accent-cyan); bottom: 100%; }
+
+/* ID | EN language toggle */
+.es-tour-lang {
+  display: inline-flex;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-right: auto;
+}
+.driver-popover.es-tour-popover .es-tour-lang button {
+  border: none;
+  border-radius: 0;
+  padding: 3px 9px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  background: transparent;
+  color: var(--text-muted);
+}
+.driver-popover.es-tour-popover .es-tour-lang button.active {
+  background-color: var(--accent-yellow);
+  color: #0b0f19;
+  font-weight: 700;
+}
+
+.tour-dec-buy { color: var(--accent-green); }
+.tour-dec-hold { color: var(--accent-yellow); }
+
+/* Pulsing highlight ring on the spotlighted element */
+.driver-active .driver-active-element {
+  animation: esTourPulse 1.6s ease-in-out infinite;
+  border-radius: 8px;
+}
+@keyframes esTourPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.55); }
+  50%      { box-shadow: 0 0 0 8px rgba(56, 189, 248, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .driver-active .driver-active-element { animation: none; }
+}

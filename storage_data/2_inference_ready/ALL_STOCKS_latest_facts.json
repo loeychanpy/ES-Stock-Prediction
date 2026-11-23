@@ -1,137 +1,272 @@
 {
-    "BBCA": {
+    "ASII": {
         "metadata": {
-            "ticker": "BBCA.JK",
-            "code": "BBCA",
-            "date": "2026-11-20",
-            "timestamp_update": "2026-11-21 11:48:31 WIB",
+            "ticker": "ASII.JK",
+            "code": "ASII",
+            "date": "2026-11-23",
+            "timestamp_update": "2026-11-23 18:34:48 WIB",
             "status_data": "FINAL (EOD)",
-            "source_csv_file": "C:\\Users\\Pongo\\OneDrive\\Dokumen\\TUGAS SEM 5\\Expert System\\Code\\storage_data\\2_inference_ready\\BBCA_clean_indicators.csv"
+            "source_csv_file": "C:\\Sem5_Projects\\ES-Stock-Prediction\\storage_data\\2_inference_ready\\ASII_clean_indicators.csv"
         },
         "price_volume": {
-            "open": 5600.0,
-            "high": 5675.0,
-            "low": 5525.0,
-            "close": 5550.0,
-            "volume": 147637100
+            "open": 5350.0,
+            "high": 5500.0,
+            "low": 5200.0,
+            "close": 5400.0,
+            "volume": 56605000
         },
         "indicator_inputs": {
-            "rsi_14": 52.8974,
-            "macd_hist": 86.3024,
-            "bb_pct_b": 0.7579
+            "rsi_14": 59.2174,
+            "macd_hist": 9.089,
+            "bb_pct_b": 0.6821
         },
         "previous_inputs": {
-            "rsi_14": 56.1598,
-            "macd_hist": 100.4683,
-            "bb_pct_b": 0.8739
+            "rsi_14": 56.5999,
+            "macd_hist": 20.5574,
+            "bb_pct_b": 0.6301
         },
         "previous2_inputs": {
-            "rsi_14": 59.5713,
-            "macd_hist": 105.8472,
-            "bb_pct_b": 1.0165
+            "rsi_14": 59.2482,
+            "macd_hist": 44.5211,
+            "bb_pct_b": 0.6995
         },
         "validation_filter": {
-            "sma_20": 5254.25,
-            "sma_50": 5677.1,
+            "sma_20": 5159.25,
+            "sma_50": 4833.7238,
+            "is_uptrend": true,
+            "local_min_n": 5250.0,
+            "near_local_min": true,
+            "signal_valid": true
+        },
+        "risk_management": {
+            "atr_14": 219.9765,
+            "initial_sl_estimate": 5180.02,
+            "initial_tp_estimate": 5839.95
+        }
+    },
+    "BAPA": {
+        "metadata": {
+            "ticker": "BAPA.JK",
+            "code": "BAPA",
+            "date": "2026-11-23",
+            "timestamp_update": "2026-11-23 18:34:50 WIB",
+            "status_data": "FINAL (EOD)",
+            "source_csv_file": "C:\\Sem5_Projects\\ES-Stock-Prediction\\storage_data\\2_inference_ready\\BAPA_clean_indicators.csv"
+        },
+        "price_volume": {
+            "open": 86.0,
+            "high": 86.0,
+            "low": 80.0,
+            "close": 83.0,
+            "volume": 7033600
+        },
+        "indicator_inputs": {
+            "rsi_14": 41.5524,
+            "macd_hist": 1.4424,
+            "bb_pct_b": 0.4239
+        },
+        "previous_inputs": {
+            "rsi_14": 43.5837,
+            "macd_hist": 1.6597,
+            "bb_pct_b": 0.4934
+        },
+        "previous2_inputs": {
+            "rsi_14": 43.5837,
+            "macd_hist": 1.753,
+            "bb_pct_b": 0.4643
+        },
+        "validation_filter": {
+            "sma_20": 84.6,
+            "sma_50": 98.48,
             "is_uptrend": false,
-            "local_min_n": 5425.0,
+            "local_min_n": 81.0,
             "near_local_min": true,
             "signal_valid": false
         },
         "risk_management": {
-            "atr_14": 203.8335,
-            "initial_sl_estimate": 5346.17,
-            "initial_tp_estimate": 5957.67
+            "atr_14": 7.3775,
+            "initial_sl_estimate": 75.62,
+            "initial_tp_estimate": 97.75
+        }
+    },
+    "BBCA": {
+        "metadata": {
+            "ticker": "BBCA.JK",
+            "code": "BBCA",
+            "date": "2026-11-23",
+            "timestamp_update": "2026-11-23 18:34:51 WIB",
+            "status_data": "FINAL (EOD)",
+            "source_csv_file": "C:\\Sem5_Projects\\ES-Stock-Prediction\\storage_data\\2_inference_ready\\BBCA_clean_indicators.csv"
+        },
+        "price_volume": {
+            "open": 5475.0,
+            "high": 5750.0,
+            "low": 5425.0,
+            "close": 5675.0,
+            "volume": 200829700
+        },
+        "indicator_inputs": {
+            "rsi_14": 56.3136,
+            "macd_hist": 81.5341,
+            "bb_pct_b": 0.8295
+        },
+        "previous_inputs": {
+            "rsi_14": 52.8974,
+            "macd_hist": 86.3024,
+            "bb_pct_b": 0.7579
+        },
+        "previous2_inputs": {
+            "rsi_14": 56.1598,
+            "macd_hist": 100.4683,
+            "bb_pct_b": 0.8739
+        },
+        "validation_filter": {
+            "sma_20": 5291.0,
+            "sma_50": 5660.6,
+            "is_uptrend": false,
+            "local_min_n": 5425.0,
+            "near_local_min": false,
+            "signal_valid": false
+        },
+        "risk_management": {
+            "atr_14": 212.4882,
+            "initial_sl_estimate": 5462.51,
+            "initial_tp_estimate": 6099.98
         }
     },
     "BBRI": {
         "metadata": {
             "ticker": "BBRI.JK",
             "code": "BBRI",
-            "date": "2026-11-20",
-            "timestamp_update": "2026-11-21 11:48:32 WIB",
+            "date": "2026-11-23",
+            "timestamp_update": "2026-11-23 18:34:52 WIB",
             "status_data": "FINAL (EOD)",
-            "source_csv_file": "C:\\Users\\Pongo\\OneDrive\\Dokumen\\TUGAS SEM 5\\Expert System\\Code\\storage_data\\2_inference_ready\\BBRI_clean_indicators.csv"
+            "source_csv_file": "C:\\Sem5_Projects\\ES-Stock-Prediction\\storage_data\\2_inference_ready\\BBRI_clean_indicators.csv"
         },
         "price_volume": {
             "open": 3060.0,
-            "high": 3090.0,
-            "low": 3020.0,
-            "close": 3080.0,
-            "volume": 144971400
+            "high": 3110.0,
+            "low": 3000.0,
+            "close": 3070.0,
+            "volume": 307369000
         },
         "indicator_inputs": {
+            "rsi_14": 58.114,
+            "macd_hist": 35.027,
+            "bb_pct_b": 0.769
+        },
+        "previous_inputs": {
             "rsi_14": 58.9948,
             "macd_hist": 40.1674,
             "bb_pct_b": 0.8092
         },
-        "previous_inputs": {
+        "previous2_inputs": {
             "rsi_14": 59.8369,
             "macd_hist": 44.0936,
             "bb_pct_b": 0.8565
         },
-        "previous2_inputs": {
-            "rsi_14": 56.9863,
-            "macd_hist": 45.9,
-            "bb_pct_b": 0.8005
-        },
         "validation_filter": {
-            "sma_20": 2901.5,
-            "sma_50": 3015.6,
+            "sma_20": 2909.5,
+            "sma_50": 3009.0,
             "is_uptrend": false,
             "local_min_n": 2980.0,
             "near_local_min": false,
             "signal_valid": false
         },
         "risk_management": {
-            "atr_14": 107.7171,
-            "initial_sl_estimate": 2972.28,
-            "initial_tp_estimate": 3295.43
+            "atr_14": 107.8802,
+            "initial_sl_estimate": 2962.12,
+            "initial_tp_estimate": 3285.76
+        }
+    },
+    "ICBP": {
+        "metadata": {
+            "ticker": "ICBP.JK",
+            "code": "ICBP",
+            "date": "2026-11-23",
+            "timestamp_update": "2026-11-23 18:34:53 WIB",
+            "status_data": "FINAL (EOD)",
+            "source_csv_file": "C:\\Sem5_Projects\\ES-Stock-Prediction\\storage_data\\2_inference_ready\\ICBP_clean_indicators.csv"
+        },
+        "price_volume": {
+            "open": 6950.0,
+            "high": 6975.0,
+            "low": 6875.0,
+            "close": 6900.0,
+            "volume": 2445100
+        },
+        "indicator_inputs": {
+            "rsi_14": 62.6881,
+            "macd_hist": 104.3445,
+            "bb_pct_b": 0.7756
+        },
+        "previous_inputs": {
+            "rsi_14": 64.7208,
+            "macd_hist": 122.1436,
+            "bb_pct_b": 0.8293
+        },
+        "previous2_inputs": {
+            "rsi_14": 64.7208,
+            "macd_hist": 134.7563,
+            "bb_pct_b": 0.8686
+        },
+        "validation_filter": {
+            "sma_20": 6312.5,
+            "sma_50": 6509.5,
+            "is_uptrend": false,
+            "local_min_n": 6625.0,
+            "near_local_min": false,
+            "signal_valid": false
+        },
+        "risk_management": {
+            "atr_14": 229.5509,
+            "initial_sl_estimate": 6670.45,
+            "initial_tp_estimate": 7359.1
         }
     },
     "TLKM": {
         "metadata": {
             "ticker": "TLKM.JK",
             "code": "TLKM",
-            "date": "2026-11-20",
-            "timestamp_update": "2026-11-21 11:48:32 WIB",
+            "date": "2026-11-23",
+            "timestamp_update": "2026-11-23 18:34:55 WIB",
             "status_data": "FINAL (EOD)",
-            "source_csv_file": "C:\\Users\\Pongo\\OneDrive\\Dokumen\\TUGAS SEM 5\\Expert System\\Code\\storage_data\\2_inference_ready\\TLKM_clean_indicators.csv"
+            "source_csv_file": "C:\\Sem5_Projects\\ES-Stock-Prediction\\storage_data\\2_inference_ready\\TLKM_clean_indicators.csv"
         },
         "price_volume": {
-            "open": 2080.0,
+            "open": 2030.0,
             "high": 2090.0,
-            "low": 2010.0,
-            "close": 2070.0,
-            "volume": 205864800
+            "low": 2000.0,
+            "close": 2040.0,
+            "volume": 200468300
         },
         "indicator_inputs": {
+            "rsi_14": 43.4398,
+            "macd_hist": 14.9084,
+            "bb_pct_b": 0.4665
+        },
+        "previous_inputs": {
             "rsi_14": 45.6452,
             "macd_hist": 22.1975,
             "bb_pct_b": 0.5179
         },
-        "previous_inputs": {
+        "previous2_inputs": {
             "rsi_14": 49.5373,
             "macd_hist": 29.4924,
             "bb_pct_b": 0.6119
         },
-        "previous2_inputs": {
-            "rsi_14": 52.0081,
-            "macd_hist": 34.231,
-            "bb_pct_b": 0.6665
-        },
         "validation_filter": {
-            "sma_20": 2062.75,
-            "sma_50": 2219.3,
+            "sma_20": 2052.25,
+            "sma_50": 2206.3,
             "is_uptrend": false,
-            "local_min_n": 2080.0,
+            "local_min_n": 2010.0,
             "near_local_min": true,
             "signal_valid": false
         },
         "risk_management": {
-            "atr_14": 93.2164,
-            "initial_sl_estimate": 1976.78,
-            "initial_tp_estimate": 2256.43
+            "atr_14": 92.9867,
+            "initial_sl_estimate": 1947.01,
+            "initial_tp_estimate": 2225.97
         }
     }
 }

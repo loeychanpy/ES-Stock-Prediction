@@ -16,25 +16,28 @@
       </div>
       <div class="d-flex align-items-center gap-2">
         {% if df_info %}
-          <span class="badge bg-dark border border-secondary font-mono-num text-white">
+          <span id="tour-price" class="badge bg-dark border border-secondary font-mono-num text-white">
             Terakhir: Rp {{ df_info.latest_close }}
             <span class="{% if df_info.is_positive %}text-success{% else %}text-danger{% endif %} ms-1">
               ({{ df_info.change_pct }})
             </span>
           </span>
         {% endif %}
-        <button type="button" class="btn btn-outline-info btn-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalAddStock" title="Tarik Saham Baru dari BEI">
+        <button id="tour-add-stock" type="button" class="btn btn-outline-info btn-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalAddStock" title="Tarik Saham Baru dari BEI">
           <i class="bi bi-plus-circle me-1"></i> Saham Baru
+        </button>
+        <button id="btnStartTour" type="button" class="btn btn-outline-warning btn-sm text-nowrap" title="Panduan penggunaan / Guided tour">
+          <i class="bi bi-play-circle me-1"></i> Panduan
         </button>
       </div>
     </div>
 
     <form action="{{ url_for('dashboard') }}" method="GET">
-      <div class="row g-3 align-items-end">
+      <div id="tour-params" class="row g-3 align-items-end">
         <!-- Stock -->
         <div class="col-lg-3 col-md-4">
           <label class="form-label text-muted small text-uppercase fw-semibold">Pilih Saham:</label>
-          <select name="ticker" class="form-select form-select-terminal">
+          <select id="tour-ticker" name="ticker" class="form-select form-select-terminal">
             {% for s in stocks %}
               <option value="{{ s }}" {% if s == selected_ticker %}selected{% endif %}>{{ s }} (IDX)</option>
             {% endfor %}
@@ -112,7 +115,9 @@
           </div>
 
           <!-- Status Badge -->
-          <div class="text-center py-2 mb-3">
+          <div id="tour-decision" class="text-center py-2 mb-3"
+               data-decision="{{ inference.decision if inference and inference.decision else 'TAHAN' }}"
+               data-ticker="{{ selected_ticker }}">
             {% if inference and inference.decision == 'BELI' %}
               <div class="badge-signal-buy">
                 <i class="bi bi-check-circle-fill fs-4"></i>
@@ -127,7 +132,7 @@
           </div>
 
           <!-- Status Evaluasi Aturan Beli -->
-          <div class="mb-3">
+          <div id="tour-rules" class="mb-3">
             <div class="d-flex justify-content-between small mb-1">
               <span class="text-muted">Aturan Beli Terpicu (R1&ndash;R5):</span>
               {% if inference and inference.buy_rules_fired %}
@@ -147,7 +152,7 @@
           </div>
 
           <!-- Filter Validasi Tahap 3 -->
-          <div class="p-2 rounded bg-dark border border-secondary mb-3 small">
+          <div id="tour-filter" class="p-2 rounded bg-dark border border-secondary mb-3 small">
             <div class="fw-semibold text-muted mb-1 text-uppercase" style="font-size: 0.7rem;">Filter Validasi Sinyal (Tahap 3):</div>
             <div class="row g-2">
               <div class="col-6">
@@ -171,7 +176,7 @@
         </div>
 
         <!-- Target Harga Entry / TP / SL -->
-        <div class="border-top border-secondary pt-3">
+        <div id="tour-targets" class="border-top border-secondary pt-3">
           <div class="row text-center g-2">
             <div class="col-4">
               <div class="metric-box py-2">
@@ -211,7 +216,7 @@
         </div>
 
         {% set ev = inference.events if inference else None %}
-        <div class="row g-3 mb-3">
+        <div id="tour-facts" class="row g-3 mb-3">
           <!-- RSI 14 -->
           <div class="col-md-4 col-12">
             <div class="metric-box">
@@ -280,7 +285,7 @@
         </div>
 
         <!-- Baris 2: ATR 14, SMA 20/50 & Minimum Lokal NPMM -->
-        <div class="row g-3 mb-3">
+        <div id="tour-risk" class="row g-3 mb-3">
           <!-- ATR 14 -->
           <div class="col-md-4 col-6">
             <div class="metric-box py-2">
@@ -324,7 +329,7 @@
         </div>
 
         <!-- Explanation Narration -->
-        <div class="p-3 rounded bg-dark border border-secondary">
+        <div id="tour-explanation" class="p-3 rounded bg-dark border border-secondary">
           <div class="d-flex align-items-center mb-1">
             <i class="bi bi-chat-left-text-fill text-info me-2"></i>
             <span class="fw-semibold text-light small text-uppercase">Penjelasan Penalaran Aturan (Rule-Based):</span>
@@ -340,7 +345,7 @@
   <!-- ========================================== -->
   <!-- INTERACTIVE PLOTLY CHART -->
   <!-- ========================================== -->
-  <div class="card-terminal p-0 mb-3">
+  <div id="tour-chart" class="card-terminal p-0 mb-3">
     <div class="card-header-terminal px-3 py-2">
       <div class="d-flex align-items-center gap-2">
         <i class="bi bi-bar-chart-line-fill text-info"></i>
@@ -358,7 +363,7 @@
   <!-- ========================================== -->
   <!-- TRACK RECORD SINYAL TERPICU (TRIGGER HISTORY) -->
   <!-- ========================================== -->
-  <div class="card-terminal p-3 mb-3">
+  <div id="tour-history" class="card-terminal p-3 mb-3">
     <div class="card-header-terminal px-0 pt-0 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
       <div class="d-flex align-items-center gap-2">
         <i class="bi bi-clock-history text-info fs-5"></i>
@@ -429,7 +434,7 @@
   <!-- ========================================== -->
   <!-- RULE EXPLANATION PANEL (R1 - R10) -->
   <!-- ========================================== -->
-  <div class="card-terminal p-3">
+  <div id="tour-kb" class="card-terminal p-3">
     <div class="card-header-terminal px-0 pt-0 mb-3">
       <div class="d-flex align-items-center gap-2">
         <i class="bi bi-shield-check text-success"></i>
@@ -522,7 +527,13 @@
 </div>
 {% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css">
+{% endblock %}
+
 {% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script>
+<script src="{{ url_for('static', filename='js/tour.js') }}"></script>
 <script>
   document.getElementById('formFetchStock').addEventListener('submit', async function(e) {
     e.preventDefault();
